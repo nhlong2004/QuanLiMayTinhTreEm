@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>OGK Dashboard - Quản lý thiết bị trẻ em</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f6f9; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        .online { color: green; font-weight: bold; }
+        .offline { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Quản Lý Thiết Bị Trẻ Em</h1>
+    <p>Trạng thái kết nối thời gian thực từ các Agent (Nhịp tim 60s/lần)[cite: 1, 2].</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Device ID</th>
+                <th>Tên thiết bị</th>
+                <th>Tên trẻ</th>
+                <th>Phiên bản Policy</th>
+                <th>Lần kết nối cuối (Last Seen)</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for device in devices %}
+            <tr>
+                <td><code>{{ device.device_id }}</code></td>
+                <td>{{ device.device_name }}</td>
+                <td>{{ device.child_name }}</td>
+                <td>{{ device.policy_version }}</td>
+                <td>{{ device.last_seen }}</td>
+                <td>
+                    {% if device.status == 'online' %}
+                        <span class="online">● Online</span>
+                    {% else %}
+                        <span class="offline">○ Offline</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center;">Chưa có thiết bị nào được ghép đôi.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

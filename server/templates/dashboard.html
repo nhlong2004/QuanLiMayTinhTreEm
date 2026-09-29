@@ -1,22 +1,56 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <title>OGK Dashboard - Quản lý thiết bị trẻ em</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f6f9; }
-        h1 { color: #333; }
-        table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        th, td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #007bff; color: white; }
-        .online { color: green; font-weight: bold; }
-        .offline { color: red; font-weight: bold; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f6f9;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .online {
+            color: green;
+            font-weight: bold;
+        }
+
+        .offline {
+            color: red;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
     <h1>Dashboard Quản Lý Thiết Bị Trẻ Em</h1>
-    <p>Trạng thái kết nối thời gian thực từ các Agent (Nhịp tim 60s/lần)[cite: 1, 2].</p>
-    
+    <p>Trạng thái kết nối thời gian thực từ các Agent (Nhịp tim 60s/lần).</p>
+
     <table>
         <thead>
             <tr>
@@ -38,9 +72,9 @@
                 <td>{{ device.last_seen }}</td>
                 <td>
                     {% if device.status == 'online' %}
-                        <span class="online">● Online</span>
+                    <span class="online">● Online</span>
                     {% else %}
-                        <span class="offline">○ Offline</span>
+                    <span class="offline">○ Offline</span>
                     {% endif %}
                 </td>
             </tr>
@@ -52,4 +86,5 @@
         </tbody>
     </table>
 </body>
+
 </html>

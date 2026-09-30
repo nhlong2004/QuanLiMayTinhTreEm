@@ -7,29 +7,23 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from datetime import datetime
 
-# --- CẤU HÌNH CƠ SỞ DỮ LIỆU & SQLALCHEMY ---
 DATABASE_URL = "sqlite:///./ogk_server.db"
 
-# connect_args={"check_same_thread": False} cần thiết cho SQLite khi dùng với FastAPI
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Bật chế độ WAL (Write-Ahead Logging) cho SQLite để tối ưu hóa hiệu năng đồng thời
-#@app_startup_event := None # Đặt logic bật WAL qua sự kiện startup của FastAPI dưới đây
-
-# --- ĐỊNH NGHĨA CÁC BẢNG CSDL (MODELS) ---
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
-    role = Column(String(20), nullable=False) # 'parent' hoặc 'child'
+    role = Column(String(20), nullable=False)
     child_name = Column(String(100), nullable=True)
 
 class Device(Base):
     __tablename__ = "devices"
-    id = Column(String(50), primary_key=True, index=True) # UUID thiết bị
+    id = Column(String(50), primary_key=True, index=True) 
     device_name = Column(String(100), nullable=False)
     child_name = Column(String(100), nullable=False)
     policy_version = Column(Integer, default=1)
@@ -40,9 +34,9 @@ class Policy(Base):
     __tablename__ = "policies"
     id = Column(Integer, primary_key=True, index=True)
     version = Column(Integer, unique=True, nullable=False)
-    quota_weekday = Column(Integer, default=90)  # Phút ngày thường
-    quota_weekend = Column(Integer, default=120) # Phút cuối tuần
-    schedule_json = Column(Text, nullable=True)   # Cấu hình lịch tuần/khung giờ
+    quota_weekday = Column(Integer, default=90)  
+    quota_weekend = Column(Integer, default=120) 
+    schedule_json = Column(Text, nullable=True)   
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Event(Base):
@@ -53,14 +47,11 @@ class Event(Base):
     payload = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-# Tạo bảng trong CSDL
 Base.metadata.create_all(bind=engine)
 
-# --- KHỞI TẠO FASTAPI & TEMPLATES ---
 app = FastAPI(title="OGK Server", version="2.0")
 templates = Jinja2Templates(directory="templates")
 
-# Dependency lấy session CSDL
 def get_db():
     db = SessionLocal()
     try:
@@ -70,11 +61,9 @@ def get_db():
 
 @app.on_event("startup")
 def startup_event():
-    # Kích hoạt chế độ WAL cho SQLite khi khởi động server
     with engine.connect() as connection:
         connection.exec_driver_sql("PRAGMA journal_mode=WAL;")
 
-# --- PYDANTIC SCHEMAS (VALIDATION) ---
 class EnrollRequest(BaseModel):
     device_id: str
     device_name: str
@@ -94,7 +83,6 @@ class PolicyUpdateRequest(BaseModel):
     schedule_json: str
 
 
-# --- CÁC ENDPOINT API & WEB ---
 
 @app.get("/", response_class=HTMLResponse)
 def read_dashboard(request: Request, db: Session = Depends(get_db)):
@@ -168,13 +156,11 @@ def heartbeat(data: HeartbeatRequest, db: Session = Depends(get_db)):
     device.last_seen = datetime.utcnow()
     device.status = "online"
     
-    # Lấy phiên bản chính sách mới nhất trên server
     latest_policy = db.query(Policy).order_by(Policy.version.desc()).first()
     latest_version = latest_policy.version if latest_policy else 1
 
     db.commit()
 
-    # Kiểm tra xem Agent có cần cập nhật policy mới không
     update_required = data.current_policy_version < latest_version
     return {
         "status": "active",

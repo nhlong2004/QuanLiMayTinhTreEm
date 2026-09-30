@@ -1,88 +1,294 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
-    <title>OGK Dashboard - Quản lý thiết bị trẻ em</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OGK Parent Dashboard - Quản lý thiết bị trẻ em</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f4f6f9;
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
         }
 
-        h1 {
-            color: #333;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: var(--primary-color);
+        }
+
+        .user-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .grid-dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-dashboard {
+                grid-template-columns: 1fr;
+            }
+            body {
+                padding: 10px;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            color: #444;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: #fff;
-            margin-top: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
         }
 
-        th,
-        td {
-            padding: 12px 15px;
-            border: 1px solid #ddd;
+        th, td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
             text-align: left;
+            font-size: 14px;
         }
 
         th {
-            background-color: #007bff;
-            color: white;
+            background-color: #f8f9fa;
+            color: #555;
         }
 
         .online {
-            color: green;
+            color: var(--success-color);
             font-weight: bold;
         }
 
         .offline {
-            color: red;
+            color: var(--danger-color);
             font-weight: bold;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+
+        .btn:hover { opacity: 0.9; }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .alert-box {
+            padding: 10px;
+            background: #e8f4fd;
+            color: #0d6efd;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
         }
     </style>
 </head>
-
 <body>
-    <h1>Dashboard Quản Lý Thiết Bị Trẻ Em</h1>
-    <p>Trạng thái kết nối thời gian thực từ các Agent (Nhịp tim 60s/lần).</p>
-    <table>
-        <thead>
-            <tr>
-                <th>Device ID</th>
-                <th>Tên thiết bị</th>
-                <th>Tên trẻ</th>
-                <th>Phiên bản Policy</th>
-                <th>Lần kết nối cuối (Last Seen)</th>
-                <th>Trạng thái</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for device in devices %}
-            <tr>
-                <td><code>{{ device.device_id }}</code></td>
-                <td>{{ device.device_name }}</td>
-                <td>{{ device.child_name }}</td>
-                <td>{{ device.policy_version }}</td>
-                <td>{{ device.last_seen }}</td>
-                <td>
-                    {% if device.status == 'online' %}
-                    <span class="online">● Online</span>
-                    {% else %}
-                    <span class="offline">○ Offline</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="6" style="text-align: center;">Chưa có thiết bị nào được ghép đôi.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+    <div class="container">
+        <!-- Header Dashboard -->
+        <header>
+            <h1>🛡️ OGK Parent Dashboard</h1>
+            <div class="user-info">Phụ huynh: <b>Admin</b> | <a href="#" style="color: var(--danger-color); text-decoration: none;">Đăng xuất</a></div>
+        </header>
+
+        <div class="grid-dashboard">
+            <!-- Cột trái: Quản lý thiết bị & Báo cáo -->
+            <div>
+                <div class="card">
+                    <h2>Danh sách thiết bị của trẻ</h2>
+                    <p style="font-size: 13px; color: #666;">Trạng thái kết nối thời gian thực từ các Agent (Nhịp tim 60s/lần).</p>
+                    
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Device ID / Tên thiết bị</th>
+                                    <th>Tên trẻ</th>
+                                    <th>Policy Ver</th>
+                                    <th>Lần cuối</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for device in devices %}
+                                <tr>
+                                    <td>
+                                        <b>{{ device.device_name }}</b><br>
+                                        <small style="color: #777; font-family: monospace;">{{ device.id }}</small>
+                                    </td>
+                                    <td>{{ device.child_name }}</td>
+                                    <td>v{{ device.policy_version }}</td>
+                                    <td><small>{{ device.last_seen }}</small></td>
+                                    <td>
+                                        {% if device.status == 'online' %}
+                                            <span class="online">● Online</span>
+                                        {% else %}
+                                            <span class="offline">○ Offline</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #777; padding: 20px;">
+                                        Chưa có thiết bị nào được ghép đôi trong cơ sở dữ liệu.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Báo cáo hoạt động chi tiết -->
+                <div class="card">
+                    <h2>Báo cáo hoạt động & Thời lượng</h2>
+                    <p style="font-size: 13px; color: #666;">Thống kê thời gian sử dụng thiết bị và lịch sử truy cập trong ngày.</p>
+                    <div style="background: #f8f9fa; padding: 30px; text-align: center; border-radius: 6px; color: #888;">
+                        [Biểu đồ thống kê thời lượng sử dụng của trẻ sẽ hiển thị ở đây]
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Cấu hình Quota, Lịch tuần & Phát hành Policy (F1, F4) -->
+            <div>
+                <div class="card">
+                    <h2>Cấu hình Quota & Lịch tuần</h2>
+                    <p style="font-size: 13px; color: #666;">Thay đổi hạn mức và phát hành chính sách mới xuống Agent.</p>
+                    
+                    <form id="policyForm">
+                        <div class="form-group">
+                            <label>Hạn mức ngày thường (Phút/ngày):</label>
+                            <input type="number" id="quotaWeekday" class="form-control" value="90" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Hạn mức cuối tuần (Phút/ngày):</label>
+                            <input type="number" id="quotaWeekend" class="form-control" value="120" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Lịch khung giờ chặn (JSON):</label>
+                            <textarea id="scheduleJson" class="form-control" rows="3">{"blocked_hours": ["22:00-06:00"]}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Phát hành Chính sách Mới</button>
+                    </form>
+                    
+                    <div id="alertBox" class="alert-box"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Xử lý sự kiện gửi form cập nhật chính sách gọi tới API /api/policy/update
+        document.getElementById('policyForm').addEventListener('submit async', async function(e) {
+            // Ngăn chặn submit form truyền thống
+        });
+
+        document.getElementById('policyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const quotaWeekday = parseInt(document.getElementById('quotaWeekday').value);
+            const quotaWeekend = parseInt(document.getElementById('quotaWeekend').value);
+            const scheduleJson = document.getElementById('scheduleJson').value;
+
+            fetch('/api/policy/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    quota_weekday: quotaWeekday,
+                    quota_weekend: quotaWeekend,
+                    schedule_json: scheduleJson
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const alertBox = document.getElementById('alertBox');
+                alertBox.style.display = 'block';
+                alertBox.innerText = " thành công! Phiên bản mới: v" + data.new_version;
+                setTimeout(() => {
+                    location.reload(); // Tải lại trang để cập nhật thông tin
+                }, 1500);
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Có lỗi xảy ra khi cập nhật chính sách.');
+            });
+        });
+    </script>
 </body>
 </html>

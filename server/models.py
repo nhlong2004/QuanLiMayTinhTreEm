@@ -1,30 +1,39 @@
-from sqlalchemy import Column, String, Integer, DateTime, Text
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
+from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
-from database import Base
 
-class DeviceModel(Base):
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, index=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), nullable=False)
+    child_name = Column(String(100), nullable=True) 
+
+class Device(Base):
     __tablename__ = "devices"
-
-    device_id = Column(String, primary_key=True, index=True)
-    device_name = Column(String, nullable=False)
-    child_name = Column(String, nullable=False)
+    id = Column(String(50), primary_key=True, index=True) 
+    device_name = Column(String(100), nullable=False)
+    child_name = Column(String(100), nullable=False)
     policy_version = Column(Integer, default=1)
     last_seen = Column(DateTime, default=datetime.utcnow)
-    status = Column(String, default="offline")
+    status = Column(String(20), default="offline")
 
-class PolicyModel(Base):
+class Policy(Base):
     __tablename__ = "policies"
-
-    policy_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True)
     version = Column(Integer, unique=True, nullable=False)
-    content_json = Column(Text, nullable=False) 
+    quota_weekday = Column(Integer, default=90)
+    quota_weekend = Column(Integer, default=120) 
+    schedule_json = Column(Text, nullable=True)   
     created_at = Column(DateTime, default=datetime.utcnow)
 
-class EventModel(Base):
+class Event(Base):
     __tablename__ = "events"
-
-    event_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    device_id = Column(String, index=True)
-    event_type = Column(String)
-    subject = Column(String)
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(String(50), ForeignKey("devices.id"))
+    event_type = Column(String(50), nullable=False)
+    payload = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)

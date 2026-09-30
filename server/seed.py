@@ -1,4 +1,3 @@
-# seed.py
 from models import Base, User, Policy, Device
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,18 +10,15 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
-    # Kiểm tra xem đã có dữ liệu chưa
     if db.query(User).first():
         print("Database đã có dữ liệu mẫu.")
         db.close()
         return
 
-    # 1. Tạo tài khoản Phụ huynh và Trẻ em
     parent = User(username="parent_admin", password_hash="admin123", role="parent")
     child = User(username="be_an", password_hash="child123", role="child", child_name="Bé An")
     db.add_all([parent, child])
 
-    # 2. Tạo chính sách mặc định (F1) phiên bản 1
     default_policy = Policy(
         version=1,
         quota_weekday=90,
@@ -31,7 +27,6 @@ def init_db():
     )
     db.add(default_policy)
 
-    # 3. Tạo thiết bị mẫu liên kết với Bé An
     sample_device = Device(
         id="7b67f9f8-7df6-4e96-8d66-2616c7b7dc13",
         device_name="PC-phong-khach",

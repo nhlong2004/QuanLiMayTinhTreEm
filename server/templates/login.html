@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGuardKids - Đăng Nhập & Đăng Ký</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/50 p-8 shadow-2xl">
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600/20 text-blue-400 rounded-2xl mb-4 border border-blue-500/30">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-white">OpenGuardKids</h1>
+            <p class="text-sm text-slate-400 mt-1">Hệ thống quản lý sử dụng máy tính trẻ em</p>
+        </div>
+
+        <!-- Tab chuyển đổi Đăng Nhập / Đăng Ký -->
+        <div class="flex border-b border-slate-700/60 mb-6">
+            <button id="tab-login" onclick="switchTab('login')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400">
+                Đăng Nhập
+            </button>
+            <button id="tab-register" onclick="switchTab('register')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+                Đăng Ký Mới
+            </button>
+        </div>
+
+        <div id="alert-box" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
+
+        <!-- Form Đăng Nhập -->
+        <form id="login-form" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Tên đăng nhập</label>
+                <input type="text" id="login-username" required placeholder="parent_admin hoặc be_an"
+                    class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Mật khẩu</label>
+                <input type="password" id="login-password" required placeholder="••••••••"
+                    class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500">
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-600/25">
+                Đăng nhập
+            </button>
+        </form>
+
+        <!-- Form Đăng Ký -->
+        <form id="register-form" class="hidden space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Tên đăng nhập mới</label>
+                <input type="text" id="reg-username" required placeholder="Ví dụ: parent_hung hoặc be_minh"
+                    class="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Mật khẩu</label>
+                <input type="password" id="reg-password" required placeholder="••••••••"
+                    class="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Vai trò tài khoản (Role)</label>
+                <select id="reg-role" onchange="toggleChildNameInput()" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 text-sm">
+                    <option value="parent">Phụ huynh (Parent Admin)</option>
+                    <option value="child">Trẻ em (Child Account)</option>
+                </select>
+            </div>
+            <div id="child-name-container" class="hidden">
+                <label class="block text-sm font-medium text-slate-300 mb-1">Tên trẻ em</label>
+                <input type="text" id="reg-child-name" placeholder="Ví dụ: Bé Minh"
+                    class="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 text-sm">
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition shadow-lg shadow-emerald-600/25">
+                Đăng Ký & Lưu Vào CSDL
+            </button>
+        </form>
+
+        <div class="mt-6 pt-6 border-t border-slate-700/50 text-xs text-center text-slate-500">
+            Tài khoản mẫu: <span class="text-slate-400 font-mono">parent_admin / admin123</span> hoặc <span class="text-slate-400 font-mono">be_an / child123</span>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const regForm = document.getElementById('register-form');
+            const tabLogin = document.getElementById('tab-login');
+            const tabReg = document.getElementById('tab-register');
+            const alertBox = document.getElementById('alert-box');
+            alertBox.classList.add('hidden');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                tabLogin.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400';
+                tabReg.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+            } else {
+                loginForm.classList.add('hidden');
+                regForm.classList.remove('hidden');
+                tabReg.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400';
+                tabLogin.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+            }
+        }
+
+        function toggleChildNameInput() {
+            const role = document.getElementById('reg-role').value;
+            const container = document.getElementById('child-name-container');
+            if (role === 'child') {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const alertBox = document.getElementById('alert-box');
+            alertBox.classList.add('hidden');
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('ogk_token', data.access_token);
+                    localStorage.setItem('ogk_role', data.role);
+                    localStorage.setItem('ogk_username', data.username || username);
+                    if (data.child_name) {
+                        localStorage.setItem('ogk_child_name', data.child_name);
+                    } else {
+                        localStorage.removeItem('ogk_child_name');
+                    }
+                    window.location.href = data.redirect_url;
+                } else {
+                    alertBox.className = 'mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium';
+                    alertBox.textContent = data.detail || 'Đăng nhập thất bại!';
+                    alertBox.classList.remove('hidden');
+                }
+            } catch (err) {
+                alertBox.className = 'mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium';
+                alertBox.textContent = 'Không thể kết nối tới Server.';
+                alertBox.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            const role = document.getElementById('reg-role').value;
+            const child_name = document.getElementById('reg-child-name').value.trim();
+            const alertBox = document.getElementById('alert-box');
+            alertBox.classList.add('hidden');
+
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role, child_name })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    alertBox.className = 'mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium';
+                    alertBox.textContent = `[Thành công] ${data.message}`;
+                    alertBox.classList.remove('hidden');
+                    setTimeout(() => switchTab('login'), 1500);
+                } else {
+                    alertBox.className = 'mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium';
+                    alertBox.textContent = data.detail || 'Đăng ký thất bại!';
+                    alertBox.classList.remove('hidden');
+                }
+            } catch (err) {
+                alertBox.className = 'mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium';
+                alertBox.textContent = 'Không thể kết nối tới Server.';
+                alertBox.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGuardKids - Màn Hình Cho Trẻ Em</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/50 p-8 shadow-2xl space-y-6">
+        
+        <!-- Header minh bạch -->
+        <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/30">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 id="child-heading" class="text-xl font-bold text-white">Chào {{ child_name }}! 🌱</h1>
+                    <p class="text-xs text-slate-400">Ứng dụng đồng hành bảo vệ & hỗ trợ bạn sử dụng máy tính</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <span id="pair-status-badge" class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-full border border-emerald-500/20">
+                    Minh Bạch (NT1)
+                </span>
+                <!-- Nút bấm Ghép Đôi gọn gàng (Không auto-show khung lớn) -->
+                <button onclick="openChildPairingModal()" class="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-medium rounded-lg border border-amber-500/30 transition">
+                    🔗 Ghép Đôi Máy Tính
+                </button>
+            </div>
+        </div>
+
+        <!-- Thông tin Quota & Chính sách hiện tại -->
+        <div id="policy-display-area" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/40">
+                    <span class="text-xs text-slate-400">Hạn Mức Ngày Thường</span>
+                    <p class="text-3xl font-bold text-blue-400 mt-1">{{ latest_policy.quota_weekday if latest_policy else 90 }} <span class="text-sm font-normal text-slate-400">phút/ngày</span></p>
+                </div>
+                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/40">
+                    <span class="text-xs text-slate-400">Hạn Mức Cuối Tuần</span>
+                    <p class="text-3xl font-bold text-emerald-400 mt-1">{{ latest_policy.quota_weekend if latest_policy else 120 }} <span class="text-sm font-normal text-slate-400">phút/ngày</span></p>
+                </div>
+            </div>
+
+            <!-- Thiết kế thân thiện cho người dùng phổ thông (Bỏ box JSON) -->
+            <div class="bg-slate-900/40 p-5 rounded-xl border border-slate-700/40 flex items-center space-x-4">
+                <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center border border-amber-500/20 text-2xl">
+                    🌙
+                </div>
+                <div>
+                    <h3 class="text-xs text-slate-400">Khung Giờ Cấm & Nghỉ Ngơi Ban Đêm:</h3>
+                    <p id="schedule-display-text" class="text-base font-semibold text-amber-300 mt-0.5">
+                        Từ 22:00 đêm đến 06:00 sáng hôm sau
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-700/40">
+            <span>Phiên bản chính sách: <b>v{{ latest_policy.version if latest_policy else 1 }}</b></span>
+            <button onclick="logout()" class="text-blue-400 hover:underline">Quay lại Đăng nhập</button>
+        </div>
+    </div>
+
+    <!-- Modal Ghép Đôi khi bấm Nút "🔗 Ghép Đôi Máy Tính" -->
+    <div id="child-pairing-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeChildPairingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                ✕
+            </button>
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center border border-amber-500/30">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white">Kết Nối Máy Tính Với Cha Mẹ</h3>
+                    <p class="text-xs text-slate-400">Nhập mã 8 ký tự do Phụ huynh sinh từ Dashboard</p>
+                </div>
+            </div>
+
+            <form id="enroll-form" class="space-y-3">
+                <input type="text" id="enroll-code-input" required placeholder="Nhập mã (VD: OGK-8A9F2B)"
+                    class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-emerald-400 font-mono text-center text-lg tracking-wider uppercase focus:outline-none focus:border-emerald-500">
+                
+                <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-xl transition shadow-lg shadow-emerald-600/20">
+                    Xác Nhận Kết Nối Máy Tính
+                </button>
+            </form>
+            <div id="enroll-msg" class="hidden text-xs font-medium text-center"></div>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            localStorage.removeItem('ogk_token');
+            localStorage.removeItem('ogk_role');
+            window.location.href = '/login';
+        }
+
+        function openChildPairingModal() {
+            document.getElementById('child-pairing-modal').classList.remove('hidden');
+        }
+
+        function closeChildPairingModal() {
+            document.getElementById('child-pairing-modal').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('ogk_child_name');
+            if (savedName) {
+                document.getElementById('child-heading').textContent = `Chào ${savedName}! 🌱`;
+            }
+
+            // Chuyển chuỗi JSON sang Tiếng Việt thân thiện người dùng
+            try {
+                const schedStr = `{{ latest_policy.schedule_json if latest_policy else '{"blocked_hours": ["22:00-06:00"]}' }}`;
+                const sched = JSON.parse(schedStr);
+                if (sched.blocked_hours && sched.blocked_hours.length > 0) {
+                    const parts = sched.blocked_hours[0].split('-');
+                    if (parts.length === 2) {
+                        document.getElementById('schedule-display-text').textContent = `Từ ${parts[0]} đêm đến ${parts[1]} sáng hôm sau`;
+                    }
+                }
+            } catch (e) {}
+
+            const deviceId = localStorage.getItem('ogk_device_id');
+            if (deviceId) {
+                const badge = document.getElementById('pair-status-badge');
+                badge.className = 'px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-full border border-emerald-500/20';
+                badge.textContent = '✓ Đã Ghép Đôi (Online)';
+            }
+        });
+
+        document.getElementById('enroll-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const enrollCode = document.getElementById('enroll-code-input').value.trim().toUpperCase();
+            const msgBox = document.getElementById('enroll-msg');
+            msgBox.classList.add('hidden');
+
+            try {
+                const response = await fetch('/auth/enroll', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        enroll_code: enrollCode,
+                        device_name: 'PC-May-Cua-Con'
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    msgBox.className = 'text-xs font-medium text-emerald-400 mt-2 text-center';
+                    msgBox.textContent = `[Thành công] ${data.message}`;
+                    msgBox.classList.remove('hidden');
+
+                    localStorage.setItem('ogk_device_id', data.device_id);
+                    if (data.child_name) {
+                        localStorage.setItem('ogk_child_name', data.child_name);
+                        document.getElementById('child-heading').textContent = `Chào ${data.child_name}! 🌱`;
+                    }
+
+                    setTimeout(() => {
+                        closeChildPairingModal();
+                        window.location.reload();
+                    }, 1200);
+                } else {
+                    msgBox.className = 'text-xs font-medium text-red-400 mt-2 text-center';
+                    msgBox.textContent = data.detail || 'Lỗi ghép đôi thiết bị!';
+                    msgBox.classList.remove('hidden');
+                }
+            } catch (err) {
+                msgBox.className = 'text-xs font-medium text-red-400 mt-2 text-center';
+                msgBox.textContent = 'Không thể kết nối tới Server.';
+                msgBox.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

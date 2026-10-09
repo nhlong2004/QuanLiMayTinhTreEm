@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List,Any, Dict
 
 class LoginRequest(BaseModel):
     username: str
@@ -28,3 +28,12 @@ class PolicyUpdateRequest(BaseModel):
     quota_weekday: int
     quota_weekend: int
     schedule_json: str
+class BlockWindow(BaseModel):
+    start: str  # Ví dụ: "22:00" hoặc "11:00"
+    end: str    # Ví dụ: "06:00" hoặc "13:00"
+
+class PolicyUpdateRequest(BaseModel):
+    quota_weekday: int
+    quota_weekend: int
+    schedule_json: Optional[Any] = None
+    app_category_quotas: Optional[Dict[str, int]] = None  # Ví dụ: {"games": 45, "study": -1} (-1 là không giới hạn)

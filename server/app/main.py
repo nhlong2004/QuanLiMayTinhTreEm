@@ -16,10 +16,14 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from server.database.database import Base, engine, get_db
-from server.app.models.models import Device, Policy
+from server.app.models.models import Device, Policy, AuditLog
 from server.app.api.auth import router as auth_router
 from server.app.api.devices import router as devices_router
 from server.app.api.policies import router as policies_router
+from server.app.api import events, reports, requests_ws
+from server.app.api import domains
+from server.app.api import apps
+
 
 # Tự động khởi tạo bảng CSDL khi khởi chạy
 Base.metadata.create_all(bind=engine)
@@ -34,7 +38,11 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 app.include_router(auth_router)
 app.include_router(devices_router)
 app.include_router(policies_router)
-
+app.include_router(events.router)
+app.include_router(reports.router)
+app.include_router(requests_ws.router)
+app.include_router(domains.router)
+app.include_router(apps.router)
 @app.on_event("startup")
 def startup_event():
     with engine.connect() as connection:
@@ -51,18 +59,21 @@ def page_login(request: Request):
 def page_parent_dashboard(request: Request, username: Optional[str] = Query(None), db: Session = Depends(get_db)):
     """Trang Dashboard Quản Lý dành cho Phụ Huynh"""
     query = db.query(Device)
-    if username:
+    if username and hasattr(Device, "parent_username"):
         devices = query.filter(Device.parent_username == username).all()
     else:
         devices = query.all()
 
     latest_policy = db.query(Policy).order_by(Policy.version.desc()).first()
+    recent_audits = db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(10).all()
+
     return templates.TemplateResponse(
         request=request, 
         name="parent_dashboard.html", 
         context={
             "devices": devices, 
             "latest_policy": latest_policy,
+            "recent_audits": recent_audits,
             "parent_username": username or "Phụ huynh"
         }
     )

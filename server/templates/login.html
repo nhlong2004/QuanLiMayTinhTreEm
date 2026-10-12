@@ -131,13 +131,12 @@
                 
                 const data = await response.json();
                 if (response.ok) {
+                    localStorage.clear();
                     localStorage.setItem('ogk_token', data.access_token);
                     localStorage.setItem('ogk_role', data.role);
                     localStorage.setItem('ogk_username', data.username || username);
                     if (data.child_name) {
                         localStorage.setItem('ogk_child_name', data.child_name);
-                    } else {
-                        localStorage.removeItem('ogk_child_name');
                     }
                     window.location.href = data.redirect_url;
                 } else {

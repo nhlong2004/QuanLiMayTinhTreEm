@@ -3,125 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenGuardKids - Màn Hình Cho Trẻ Em</title>
+    <title>Góc Của Em - OpenGuardKids</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .kid-font { font-family: 'Comfortaa', cursive, sans-serif; }
+        .sidebar-btn.active {
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.08) 100%);
+            color: #34d399;
+            border-left: 4px solid #10b981;
+            font-weight: 700;
+        }
+        .sidebar-btn:not(.active) {
+            border-left: 4px solid transparent;
+            color: #94a3b8;
+        }
+        .sidebar-btn:not(.active):hover {
+            background-color: rgba(51, 65, 85, 0.3);
+            color: #f1f5f9;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-2xl bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/50 p-8 shadow-2xl space-y-6">
-        
-        <!-- Header minh bạch -->
-        <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white">
+
+    <!-- 1. HEADER Ở TRÊN CÙNG -->
+    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 h-16 flex-none">
+        <div class="h-full px-4 sm:px-6 flex items-center justify-between">
+            <!-- Brand & Lời chào thân thiện -->
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/30">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
+                <img src="/static/images/shield_logo.svg" alt="Logo" class="w-9 h-9 drop-shadow">
                 <div>
-                    <h1 id="child-heading" class="text-xl font-bold text-white">Chào {{ child_name }}! 🌱</h1>
-                    <p class="text-xs text-slate-400">Ứng dụng đồng hành bảo vệ & hỗ trợ bạn sử dụng máy tính</p>
+                    <h1 class="font-bold text-white text-base sm:text-lg kid-font flex items-center space-x-1.5">
+                        <span id="child-heading">Chào {{ child_name }}!</span>
+                        <span>🌱</span>
+                    </h1>
                 </div>
             </div>
-            
-            <div class="flex items-center space-x-2">
-                <span id="pair-status-badge" class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-full border border-emerald-500/20">
-                    Minh Bạch (NT1)
+
+            <!-- Trạng thái kết nối & Nút Thoát -->
+            <div class="flex items-center space-x-3">
+                {% if is_paired %}
+                <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 font-semibold rounded-full border border-emerald-500/20 text-xs flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Đã nối máy</span>
                 </span>
-                <!-- Nút bấm Ghép Đôi gọn gàng (Không auto-show khung lớn) -->
-                <button onclick="openChildPairingModal()" class="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-medium rounded-lg border border-amber-500/30 transition">
-                    🔗 Ghép Đôi Máy Tính
+                {% else %}
+                <span class="px-3 py-1 bg-amber-500/10 text-amber-400 font-semibold rounded-full border border-amber-500/20 text-xs flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span>Chưa nối máy</span>
+                </span>
+                {% endif %}
+
+                <button onclick="logout()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 rounded-xl text-xs transition">
+                    Thoát
                 </button>
             </div>
         </div>
+    </header>
 
-        <!-- Thông tin Quota & Chính sách hiện tại -->
-        <div id="policy-display-area" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/40">
-                    <span class="text-xs text-slate-400">Hạn Mức Ngày Thường</span>
-                    <p class="text-3xl font-bold text-blue-400 mt-1">{{ latest_policy.quota_weekday if latest_policy else 90 }} <span class="text-sm font-normal text-slate-400">phút/ngày</span></p>
-                </div>
-                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/40">
-                    <span class="text-xs text-slate-400">Hạn Mức Cuối Tuần</span>
-                    <p class="text-3xl font-bold text-emerald-400 mt-1">{{ latest_policy.quota_weekend if latest_policy else 120 }} <span class="text-sm font-normal text-slate-400">phút/ngày</span></p>
-                </div>
-            </div>
-
-            <!-- Thiết kế thân thiện cho người dùng phổ thông (Bỏ box JSON) -->
-            <div class="bg-slate-900/40 p-5 rounded-xl border border-slate-700/40 flex items-center space-x-4">
-                <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center border border-amber-500/20 text-2xl">
-                    🌙
-                </div>
-                <div>
-                    <h3 class="text-xs text-slate-400">Khung Giờ Cấm & Nghỉ Ngơi Ban Đêm:</h3>
-                    <p id="schedule-display-text" class="text-base font-semibold text-amber-300 mt-0.5">
-                        Từ 22:00 đêm đến 06:00 sáng hôm sau
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-700/40">
-            <span>Phiên bản chính sách: <b>v{{ latest_policy.version if latest_policy else 1 }}</b></span>
-            <button onclick="logout()" class="text-blue-400 hover:underline">Quay lại Đăng nhập</button>
-        </div>
-    </div>
-
-    <!-- Modal Ghép Đôi khi bấm Nút "🔗 Ghép Đôi Máy Tính" -->
-    <div id="child-pairing-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
-            <button onclick="closeChildPairingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                ✕
-            </button>
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center border border-amber-500/30">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="font-bold text-white">Kết Nối Máy Tính Với Cha Mẹ</h3>
-                    <p class="text-xs text-slate-400">Nhập mã 8 ký tự do Phụ huynh sinh từ Dashboard</p>
-                </div>
-            </div>
-
-            <form id="enroll-form" class="space-y-3">
-                <input type="text" id="enroll-code-input" required placeholder="Nhập mã (VD: OGK-8A9F2B)"
-                    class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-emerald-400 font-mono text-center text-lg tracking-wider uppercase focus:outline-none focus:border-emerald-500">
+    <!-- 2. THÂN CHÍNH: SIDEBAR (TRÁI) & CONTENT (PHẢI) -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- SIDEBAR BÊN TRÁI -->
+        <aside class="w-60 sm:w-64 bg-slate-900/70 border-r border-slate-800/80 flex flex-col justify-between flex-none p-3 space-y-4">
+            <div class="space-y-1.5">
+                <p class="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 kid-font">Mục của em</p>
                 
-                <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-xl transition shadow-lg shadow-emerald-600/20">
-                    Xác Nhận Kết Nối Máy Tính
+                <button onclick="switchTab('time')" id="tab-btn-time" class="sidebar-btn active w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm transition">
+                    <span class="text-xl">⏰</span>
+                    <span>Giờ Dùng Máy</span>
                 </button>
-            </form>
-            <div id="enroll-msg" class="hidden text-xs font-medium text-center"></div>
-        </div>
+
+                <button onclick="switchTab('message')" id="tab-btn-message" class="sidebar-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm transition">
+                    <span class="text-xl">💬</span>
+                    <span>Nhắn Bố Mẹ</span>
+                </button>
+
+                <button onclick="switchTab('activity')" id="tab-btn-activity" class="sidebar-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm transition">
+                    <span class="text-xl">💻</span>
+                    <span>Hôm Nay Đã Dùng</span>
+                </button>
+
+                <!-- TAB MỚI THEO NT5: NHẬT KÝ CỦA BỐ MẸ -->
+                <button onclick="switchTab('audit')" id="tab-btn-audit" class="sidebar-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm transition">
+                    <span class="text-xl">📜</span>
+                    <span>Nhật Ký Của Bố Mẹ</span>
+                </button>
+
+                <button onclick="switchTab('pair')" id="tab-btn-pair" class="sidebar-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm transition">
+                    <span class="text-xl">🔗</span>
+                    <span>Nối Máy Tính</span>
+                </button>
+            </div>
+
+            <!-- Lời nhắc nhở dễ thương ở cuối sidebar -->
+            <div class="p-4 bg-emerald-950/20 rounded-2xl border border-emerald-500/20 text-center space-y-1">
+                <span class="text-2xl block">🌟</span>
+                <p class="text-xs font-semibold text-emerald-300 kid-font">Bảo vệ mắt nhé!</p>
+                <p class="text-[11px] text-slate-400 leading-snug">Ngồi cách màn hình 50cm và chớp mắt đều nha.</p>
+            </div>
+        </aside>
+
+        <!-- CONTENT BÊN PHẢI (SPA DYNAMIC CONTAINER) -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl">
+
+            <!-- TAB 1: GIỜ DÙNG MÁY -->
+            <section id="section-time" class="space-y-6">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight kid-font">⏰ Giờ Dùng Máy Của Em</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Thời gian em được dùng máy tính mỗi ngày</p>
+                </div>
+
+                <!-- 2 Hộp Quota Ngày Thường & Cuối Tuần -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-gradient-to-br from-blue-900/30 to-slate-900/60 p-6 rounded-3xl border border-blue-500/20 space-y-2">
+                        <span class="text-xs sm:text-sm font-semibold text-blue-300 block">📅 Thứ Hai đến Thứ Sáu</span>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="text-4xl sm:text-5xl font-black text-blue-400 font-mono">{{ latest_policy.quota_weekday if latest_policy else 90 }}</span>
+                            <span class="text-sm text-slate-300">phút mỗi ngày</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-emerald-900/30 to-slate-900/60 p-6 rounded-3xl border border-emerald-500/20 space-y-2">
+                        <span class="text-xs sm:text-sm font-semibold text-emerald-300 block">🎉 Thứ Bảy & Chủ Nhật</span>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="text-4xl sm:text-5xl font-black text-emerald-400 font-mono">{{ latest_policy.quota_weekend if latest_policy else 120 }}</span>
+                            <span class="text-sm text-slate-300">phút mỗi ngày</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Giờ đi ngủ / Nghỉ ngơi ban đêm -->
+                <div class="bg-gradient-to-br from-amber-900/20 to-slate-900/60 p-6 rounded-3xl border border-amber-500/20 flex items-center space-x-4">
+                    <div class="w-14 h-14 bg-amber-500/20 text-amber-300 rounded-2xl flex items-center justify-center text-3xl flex-none border border-amber-500/30">
+                        🌙
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-amber-300 kid-font">Giờ Nghỉ Ngơi & Đi Ngủ:</h3>
+                        <p id="schedule-display-text" class="text-base sm:text-lg font-bold text-white mt-0.5">
+                            Từ 22:00 đêm đến 06:00 sáng hôm sau
+                        </p>
+                        <p class="text-xs text-slate-400 mt-1">Đến giờ này máy sẽ tự nghỉ để em đi ngủ nhé! 😴</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: NHẮN BỐ MẸ -->
+            <section id="section-message" class="hidden space-y-6">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight kid-font">💬 Gửi Lời Nhắn Đến Bố Mẹ</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Bấm nút bên dưới để gửi tin nhắn nhanh tới Bố Mẹ</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Nút 1: Xin thêm giờ -->
+                    <button onclick="sendChildVoiceRequest('extra_time', 'Con xin thêm 15 phút để hoàn thành bài tập')" class="p-6 bg-gradient-to-br from-blue-600/30 hover:from-blue-600/50 to-slate-900/60 border border-blue-500/30 hover:border-blue-400 rounded-3xl text-left space-y-3 transition shadow-lg group">
+                        <span class="text-3xl block group-hover:scale-110 transition">⏰</span>
+                        <div>
+                            <span class="font-bold text-white text-base block kid-font">Xin thêm 15 phút</span>
+                            <span class="text-xs text-blue-200 mt-1 block">Để em làm nốt bài tập hoặc hoàn thành dở việc</span>
+                        </div>
+                    </button>
+
+                    <!-- Nút 2: Báo nhầm -->
+                    <button onclick="promptFalsePositive()" class="p-6 bg-gradient-to-br from-amber-600/30 hover:from-amber-600/50 to-slate-900/60 border border-amber-500/30 hover:border-amber-400 rounded-3xl text-left space-y-3 transition shadow-lg group">
+                        <span class="text-3xl block group-hover:scale-110 transition">🛡️</span>
+                        <div>
+                            <span class="font-bold text-white text-base block kid-font">Báo trang web bị khóa</span>
+                            <span class="text-xs text-amber-200 mt-1 block">Nhắn Bố Mẹ mở lại trang web học tập em cần dùng</span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Hộp thông báo phản hồi của lời nhắn -->
+                <div id="voice-request-status" class="hidden p-4 rounded-2xl text-sm font-semibold text-center border shadow-md"></div>
+            </section>
+
+            <!-- TAB 3: HÔM NAY ĐÃ DÙNG -->
+            <section id="section-activity" class="hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight kid-font">💻 Hôm Nay Em Đã Dùng Gì?</h2>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-1">Ghi nhận thời gian em đã bật máy hôm nay</p>
+                    </div>
+                    <button onclick="loadChildTodaySummary()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl border border-slate-700 transition">
+                        🔄 Cập nhật
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block mb-1">Thời gian đã dùng hôm nay</span>
+                        <span id="child-today-hours" class="text-3xl font-extrabold text-emerald-400 font-mono">0h</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block mb-1">Số lần mở ứng dụng</span>
+                        <span id="child-today-count" class="text-3xl font-extrabold text-blue-400 font-mono">0</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
+                    <span class="text-xs font-semibold text-slate-300 block">Các ứng dụng đã mở:</span>
+                    <div id="child-today-apps" class="divide-y divide-slate-800 text-xs">
+                        <p class="text-center py-4 text-slate-500">Chưa ghi nhận ứng dụng nào hôm nay.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4 THEO NT5: NHẬT KÝ CỦA BỐ MẸ (MINH BẠCH HAI CHIỀU) -->
+            <section id="section-audit" class="hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight kid-font">📜 Nhật Ký Của Bố Mẹ</h2>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-1">Lịch sử Bố Mẹ cập nhật quy tắc giờ giấc cho em</p>
+                    </div>
+                    <button onclick="loadChildAuditLogs()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl border border-slate-700 transition">
+                        🔄 Cập nhật
+                    </button>
+                </div>
+
+                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
+                    <span class="text-xs font-semibold text-slate-300 block">Các lần Bố Mẹ chỉnh sửa quy định:</span>
+                    <div id="child-audit-list" class="divide-y divide-slate-800 text-xs">
+                        <p class="text-center py-6 text-slate-500">Đang tải nhật ký...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: NỐI MÁY TÍNH -->
+            <section id="section-pair" class="hidden space-y-6">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight kid-font">🔗 Nối Máy Tính Với Bố Mẹ</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Nhập mã kết nối gồm 8 ký tự do Bố Mẹ đưa cho em nhé</p>
+                </div>
+
+                <div class="bg-slate-900/60 p-6 rounded-3xl border border-slate-800 max-w-lg space-y-4">
+                    <form id="enroll-form" class="space-y-4">
+                        <label class="block text-xs font-semibold text-slate-300">Mã Bố Mẹ đưa cho em:</label>
+                        <input type="text" id="enroll-code-input" required placeholder="OGK-XXXXXX"
+                            class="w-full px-4 py-3.5 bg-slate-950 border border-slate-700 rounded-2xl text-emerald-400 font-mono text-center text-xl tracking-widest uppercase focus:outline-none focus:border-emerald-500 shadow-inner">
+                        
+                        <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-sm rounded-2xl transition shadow-lg shadow-emerald-600/20">
+                            🚀 Nối Máy Ngay
+                        </button>
+                    </form>
+                    <div id="enroll-msg" class="hidden text-xs font-medium text-center p-3 rounded-xl"></div>
+                </div>
+            </section>
+
+        </main>
     </div>
 
+    <!-- 3. FOOTER Ở CUỐI TRANG -->
+    <footer class="py-3 border-t border-slate-800/80 bg-slate-900/80 px-4 text-center text-xs text-slate-400 flex-none flex items-center justify-center space-x-1 sm:space-x-2 flex-wrap">
+        <span>🌟 2026 – OpenGuardKids</span>
+        <span>📍 Trường Đại học Khoa học Tự Nhiên - VNUHCM</span>
+        <span class="inline-flex items-center space-x-1">
+            <span>🔗</span>
+            <a href="https://github.com" target="_blank" class="hover:text-emerald-400 hover:underline">GitHub</a>
+        </span>
+        <span>|</span>
+        <span class="inline-flex items-center space-x-1">
+            <span>📧</span>
+            <a href="mailto:support@openguardkids.vn" class="hover:text-emerald-400 hover:underline">Liên hệ</a>
+        </span>
+    </footer>
+
+    <!-- JAVASCRIPT SPA CONTROLLER -->
     <script>
+        const isChildPaired = {{ 'true' if is_paired else 'false' }};
+        const currentChildId = {{ child_id if child_id else 'null' }};
+        const serverDeviceId = "{{ paired_device.id if paired_device else '' }}";
+
         function logout() {
-            localStorage.removeItem('ogk_token');
-            localStorage.removeItem('ogk_role');
+            localStorage.clear();
             window.location.href = '/login';
         }
 
-        function openChildPairingModal() {
-            document.getElementById('child-pairing-modal').classList.remove('hidden');
+        // CHUYỂN TAB SPA KHÔNG LOAD LẠI TRANG
+        function switchTab(tabKey) {
+            const tabs = ['time', 'message', 'activity', 'audit', 'pair'];
+            tabs.forEach(t => {
+                const section = document.getElementById(`section-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tabKey) {
+                    if (section) section.classList.remove('hidden');
+                    if (btn) btn.classList.add('active');
+                } else {
+                    if (section) section.classList.add('hidden');
+                    if (btn) btn.classList.remove('active');
+                }
+            });
+
+            if (tabKey === 'activity') loadChildTodaySummary();
+            if (tabKey === 'audit') loadChildAuditLogs();
         }
 
-        function closeChildPairingModal() {
-            document.getElementById('child-pairing-modal').classList.add('hidden');
+        async function loadChildAuditLogs() {
+            const box = document.getElementById('child-audit-list');
+            try {
+                const res = await fetch('/api/audit-logs?limit=30');
+                const data = await res.json();
+                if (res.ok && data && data.length > 0) {
+                    box.innerHTML = '';
+                    data.forEach(log => {
+                        let actionText = 'Đã chỉnh sửa quy định';
+                        if (log.action.includes('POLICY')) actionText = 'Cập nhật giờ sử dụng máy';
+                        if (log.action.includes('LOCK')) actionText = 'Gửi lệnh khóa máy';
+                        
+                        box.innerHTML += `
+                            <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-slate-300">
+                                <div>
+                                    <span class="font-bold text-white text-xs block sm:inline">👤 ${log.actor}:</span>
+                                    <span class="text-xs text-blue-300 ml-1 font-semibold">${actionText}</span>
+                                    <span class="text-[11px] text-slate-400 block mt-0.5">${log.new_value || ''}</span>
+                                </div>
+                                <span class="text-[11px] text-slate-500 font-mono flex-none">🕒 ${log.timestamp}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    box.innerHTML = '<p class="text-center py-6 text-slate-500">Chưa có thay đổi nào từ Bố Mẹ.</p>';
+                }
+            } catch (e) {
+                box.innerHTML = '<p class="text-center py-6 text-slate-500">Chưa kết nối được nhật ký.</p>';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const savedName = localStorage.getItem('ogk_child_name');
-            if (savedName) {
-                document.getElementById('child-heading').textContent = `Chào ${savedName}! 🌱`;
+            if (isChildPaired && serverDeviceId) {
+                localStorage.setItem('ogk_device_id', serverDeviceId);
+            } else {
+                localStorage.removeItem('ogk_device_id');
             }
 
-            // Chuyển chuỗi JSON sang Tiếng Việt thân thiện người dùng
+            const savedName = "{{ child_name }}" || localStorage.getItem('ogk_child_name');
+            if (savedName && savedName !== "None") {
+                document.getElementById('child-heading').textContent = `Chào ${savedName}!`;
+            }
+
+            // Chuyển chuỗi lịch sang câu nói thân thiện
             try {
                 const schedStr = `{{ latest_policy.schedule_json if latest_policy else '{"blocked_hours": ["22:00-06:00"]}' }}`;
                 const sched = JSON.parse(schedStr);
@@ -133,13 +355,84 @@
                 }
             } catch (e) {}
 
-            const deviceId = localStorage.getItem('ogk_device_id');
-            if (deviceId) {
-                const badge = document.getElementById('pair-status-badge');
-                badge.className = 'px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-full border border-emerald-500/20';
-                badge.textContent = '✓ Đã Ghép Đôi (Online)';
-            }
+            loadChildTodaySummary();
         });
+
+        async function loadChildTodaySummary() {
+            if (!isChildPaired || !currentChildId) {
+                document.getElementById('child-today-hours').textContent = '0h';
+                document.getElementById('child-today-count').textContent = '0';
+                document.getElementById('child-today-apps').innerHTML = '<p class="text-center py-4 text-slate-500">Chưa nối máy tính với Bố Mẹ.</p>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/reports/summary?period=today&child_id=${currentChildId}`);
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('child-today-hours').textContent = data.total_usage_hours + 'h';
+                    let totalCount = 0;
+                    const appsBox = document.getElementById('child-today-apps');
+                    appsBox.innerHTML = "";
+                    if (data.top_apps && data.top_apps.length > 0) {
+                        data.top_apps.forEach(app => {
+                            totalCount += app.count;
+                            appsBox.innerHTML += `<div class="flex justify-between py-2 border-b border-slate-800"><span>💻 ${app.name}</span><span class="text-slate-400">${app.count} lần mở</span></div>`;
+                        });
+                    } else {
+                        appsBox.innerHTML = `<p class="text-center py-4 text-slate-500">Chưa mở ứng dụng nào hôm nay.</p>`;
+                    }
+                    document.getElementById('child-today-count').textContent = totalCount;
+                }
+            } catch (e) {
+                console.error("Lỗi:", e);
+            }
+        }
+
+        async function sendChildVoiceRequest(reqType, content) {
+            const deviceId = localStorage.getItem('ogk_device_id') || serverDeviceId;
+            if (!isChildPaired && !deviceId) {
+                alert("Máy tính của em chưa được nối với Bố Mẹ. Em bấm mục 'Nối Máy Tính' ở bên trái và nhập mã Bố Mẹ đưa trước nhé!");
+                switchTab('pair');
+                return;
+            }
+
+            const statusBox = document.getElementById('voice-request-status');
+            statusBox.classList.remove('hidden');
+            statusBox.className = 'p-4 rounded-2xl text-sm font-semibold text-center bg-blue-500/20 text-blue-300 border border-blue-500/30';
+            statusBox.textContent = 'Đang gửi lời nhắn tới Bố Mẹ... 🚀';
+
+            try {
+                const res = await fetch('/api/requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        device_id: deviceId || null,
+                        child_id: currentChildId,
+                        request_type: reqType,
+                        content: content
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    statusBox.className = 'p-4 rounded-2xl text-sm font-semibold text-center bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                    statusBox.textContent = `🥰 Bố Mẹ đã nhận được lời nhắn của con: "${content}". Em chờ Bố Mẹ một xíu nhé!`;
+                } else {
+                    statusBox.className = 'p-4 rounded-2xl text-sm font-semibold text-center bg-red-500/20 text-red-300 border border-red-500/30';
+                    statusBox.textContent = data.detail || 'Không gửi được lời nhắn.';
+                }
+            } catch (e) {
+                statusBox.className = 'p-4 rounded-2xl text-sm font-semibold text-center bg-red-500/20 text-red-300 border border-red-500/30';
+                statusBox.textContent = 'Không kết nối được với máy chủ!';
+            }
+        }
+
+        function promptFalsePositive() {
+            const siteOrApp = prompt("Nhập tên trang web hoặc ứng dụng em muốn Bố Mẹ mở lại:");
+            if (siteOrApp && siteOrApp.trim()) {
+                sendChildVoiceRequest('report_false_positive', `Con muốn dùng "${siteOrApp.trim()}" mà bị khóa, Bố Mẹ mở lại cho con với ạ!`);
+            }
+        }
 
         document.getElementById('enroll-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -153,34 +446,26 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         enroll_code: enrollCode,
-                        device_name: 'PC-May-Cua-Con'
+                        device_name: 'PC-Cua-Em'
                     })
                 });
 
                 const data = await response.json();
                 if (response.ok) {
-                    msgBox.className = 'text-xs font-medium text-emerald-400 mt-2 text-center';
-                    msgBox.textContent = `[Thành công] ${data.message}`;
+                    msgBox.className = 'text-xs font-bold text-emerald-400 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-center';
+                    msgBox.textContent = `🎉 Nối máy thành công rồi!`;
                     msgBox.classList.remove('hidden');
 
                     localStorage.setItem('ogk_device_id', data.device_id);
-                    if (data.child_name) {
-                        localStorage.setItem('ogk_child_name', data.child_name);
-                        document.getElementById('child-heading').textContent = `Chào ${data.child_name}! 🌱`;
-                    }
-
-                    setTimeout(() => {
-                        closeChildPairingModal();
-                        window.location.reload();
-                    }, 1200);
+                    setTimeout(() => window.location.reload(), 1200);
                 } else {
-                    msgBox.className = 'text-xs font-medium text-red-400 mt-2 text-center';
-                    msgBox.textContent = data.detail || 'Lỗi ghép đôi thiết bị!';
+                    msgBox.className = 'text-xs font-bold text-red-400 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-center';
+                    msgBox.textContent = data.detail || 'Mã không đúng hoặc đã hết hạn!';
                     msgBox.classList.remove('hidden');
                 }
             } catch (err) {
-                msgBox.className = 'text-xs font-medium text-red-400 mt-2 text-center';
-                msgBox.textContent = 'Không thể kết nối tới Server.';
+                msgBox.className = 'text-xs font-bold text-red-400 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-center';
+                msgBox.textContent = 'Không kết nối được tới máy chủ!';
                 msgBox.classList.remove('hidden');
             }
         });

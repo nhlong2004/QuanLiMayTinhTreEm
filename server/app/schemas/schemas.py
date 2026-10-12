@@ -24,10 +24,6 @@ class HeartbeatRequest(BaseModel):
     device_id: str
     current_policy_version: int
 
-class PolicyUpdateRequest(BaseModel):
-    quota_weekday: int
-    quota_weekend: int
-    schedule_json: str
 class BlockWindow(BaseModel):
     start: str  # Ví dụ: "22:00" hoặc "11:00"
     end: str    # Ví dụ: "06:00" hoặc "13:00"
@@ -36,4 +32,6 @@ class PolicyUpdateRequest(BaseModel):
     quota_weekday: int
     quota_weekend: int
     schedule_json: Optional[Any] = None
-    app_category_quotas: Optional[Dict[str, int]] = None  # Ví dụ: {"games": 45, "study": -1} (-1 là không giới hạn)
+    block_windows: Optional[List[BlockWindow]] = None
+    app_category_quotas: Optional[Dict[str, int]] = None  # Ví dụ: {"games": 45, "study": -1}
+    actor_username: Optional[str] = None

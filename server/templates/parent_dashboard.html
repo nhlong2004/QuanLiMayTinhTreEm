@@ -3,83 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenGuardKids - Dashboard Phụ Huynh</title>
+    <title>OpenGuardKids - Quản Lý Dành Cho Cha Mẹ</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-btn.active {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.2) 0%, rgba(30, 58, 138, 0.08) 100%);
+            color: #60a5fa;
+            border-left: 4px solid #3b82f6;
+            font-weight: 600;
+        }
+        .sidebar-btn:not(.active) {
+            border-left: 4px solid transparent;
+            color: #94a3b8;
+        }
+        .sidebar-btn:not(.active):hover {
+            background-color: rgba(51, 65, 85, 0.3);
+            color: #f1f5f9;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b1120; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
-    <nav class="bg-slate-800/80 border-b border-slate-700/50 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+    <!-- 1. HEADER Ở TRÊN CÙNG -->
+    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 h-16 flex-none">
+        <div class="h-full px-4 sm:px-6 flex items-center justify-between">
+            <!-- Logo & Tên ứng dụng -->
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center border border-blue-500/30">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="font-bold text-white leading-none">Dashboard Phụ Huynh</h1>
-                    <span class="text-xs text-blue-400">Tài khoản: <b id="user-display">{{ parent_username }}</b></span>
-                </div>
+                <img src="/static/images/shield_logo.svg" alt="OpenGuardKids" class="w-8 h-8 drop-shadow">
+                <h1 class="font-extrabold text-white text-base tracking-tight">OpenGuardKids</h1>
             </div>
+
+            <!-- Tài khoản & Thao tác nhanh -->
             <div class="flex items-center space-x-3">
-                <button onclick="openPairingModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg text-sm transition shadow-lg shadow-emerald-600/20 flex items-center space-x-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Ghép Đôi Thiết Bị Mới</span>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 block sm:inline">Tài khoản:</span>
+                    <span class="text-xs font-bold text-blue-400" id="user-display">{{ parent_username }}</span>
+                </div>
+
+                <button onclick="openPairingModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl text-xs sm:text-sm transition shadow flex items-center space-x-1.5">
+                    <span>+ Kết Nối Máy Của Con</span>
                 </button>
-                <button onclick="logout()" class="px-4 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition">
+
+                <button onclick="logout()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 rounded-xl text-xs transition">
                     Đăng xuất
                 </button>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <div id="status-toast" class="hidden p-4 rounded-xl border text-sm font-medium transition"></div>
+    <!-- 2. THÂN CHÍNH: SIDEBAR (TRÁI) & CONTENT (PHẢI) -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- SIDEBAR BÊN TRÁI -->
+        <aside class="w-60 sm:w-64 bg-slate-900/70 border-r border-slate-800/80 flex flex-col justify-between flex-none p-3 space-y-4">
+            <div class="space-y-1.5">
+                <p class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Chức năng</p>
+                
+                <button onclick="switchTab('overview')" id="tab-btn-overview" class="sidebar-btn active w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-base">📊</span>
+                        <span>Tổng Quan Hôm Nay</span>
+                    </div>
+                </button>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Cấu hình Policy (F1, F4) -->
-            <div class="lg:col-span-2 bg-slate-800/60 rounded-2xl border border-slate-700/50 p-6 space-y-6">
-                <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
-                    <div>
-                        <h2 class="text-lg font-bold text-white">Chính Sách Thời Gian Sử Dụng</h2>
-                        <p class="text-xs text-slate-400">Phiên bản hiện tại trên Server: <span class="font-bold text-blue-400">v{{ latest_policy.version if latest_policy else 1 }}</span></p>
+                <button onclick="switchTab('policy')" id="tab-btn-policy" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-base">⏰</span>
+                        <span>Hạn Mức Giờ Dùng</span>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('devices')" id="tab-btn-devices" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-base">💻</span>
+                        <span>Máy Tính Của Con</span>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-800 text-slate-300 rounded-full">{{ devices|length }}</span>
+                </button>
+
+                <button onclick="switchTab('requests')" id="tab-btn-requests" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-base">🔔</span>
+                        <span>Tin Nhắn Từ Con</span>
+                    </div>
+                    <span id="requests-badge" class="hidden text-[10px] font-bold px-2 py-0.5 bg-amber-500 text-slate-950 rounded-full">!</span>
+                </button>
+
+                <button onclick="switchTab('domains')" id="tab-btn-domains" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-base">🌐</span>
+                        <span>Chặn Trang Web</span>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('apps')" id="tab-btn-apps" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-base">🛡️</span>
+                        <span>Chặn Game & App</span>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('privacy')" id="tab-btn-privacy" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-base">🔒</span>
+                        <span>Lịch Sử & Bảo Mật</span>
+                    </div>
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENT BÊN PHẢI -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl">
+            <div id="status-toast" class="hidden p-4 rounded-xl border text-sm font-medium transition shadow-lg"></div>
+
+            <!-- TAB 1: TỔNG QUAN HÔM NAY -->
+            <section id="section-overview" class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-white tracking-tight">📊 Tình Hình Sử Dụng Máy Tính Của Con</h2>
+                    <button onclick="loadReportsSummary()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs rounded-xl border border-slate-700 transition">
+                        🔄 Làm mới
+                    </button>
+                </div>
+
+                <!-- 3 Thẻ thống kê chính -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block mb-1">Thời gian con dùng</span>
+                        <span id="stat-total-hours" class="text-3xl font-extrabold text-emerald-400 font-mono">0h</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block mb-1">Ứng dụng bị chặn</span>
+                        <span id="stat-blocked-apps" class="text-3xl font-extrabold text-amber-400 font-mono">0</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block mb-1">Trang web bị chặn</span>
+                        <span id="stat-blocked-domains" class="text-3xl font-extrabold text-red-400 font-mono">0</span>
                     </div>
                 </div>
 
-                <form id="policy-form" class="space-y-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-700/40">
-                            <label class="block text-sm font-medium text-slate-300 mb-2">Quota Ngày Thường (Phút)</label>
-                            <input type="number" id="quota_weekday" value="{{ latest_policy.quota_weekday if latest_policy else 90 }}" min="1" required
-                                class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-700/40">
-                            <label class="block text-sm font-medium text-slate-300 mb-2">Quota Cuối Tuần (Phút)</label>
-                            <input type="number" id="quota_weekend" value="{{ latest_policy.quota_weekend if latest_policy else 120 }}" min="1" required
-                                class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500">
+                <!-- Biểu đồ thời lượng 7 ngày gần nhất -->
+                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
+                    <span class="text-sm font-semibold text-slate-200">Biểu đồ thời gian dùng máy (7 ngày qua)</span>
+                    <div class="w-full h-56">
+                        <canvas id="usageChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Danh sách Ứng dụng & Trang web mở nhiều nhất -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <h3 class="text-sm font-semibold text-slate-200">Ứng dụng con mở nhiều nhất</h3>
+                        <div id="top-apps-list" class="divide-y divide-slate-800 max-h-56 overflow-y-auto text-xs">
+                            <div class="p-3 text-center text-slate-400">Chưa có dữ liệu.</div>
                         </div>
                     </div>
 
-                    <!-- Khung Giờ Cấm Động (Hỗ trợ nhiều khoảng thời gian) -->
-                    <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-700/40 space-y-4">
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <h3 class="text-sm font-semibold text-slate-200">Trang web con xem nhiều nhất</h3>
+                        <div id="top-domains-list" class="divide-y divide-slate-800 max-h-56 overflow-y-auto text-xs">
+                            <div class="p-3 text-center text-slate-400">Chưa có dữ liệu.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: HẠN MỨC GIỜ DÙNG -->
+            <section id="section-policy" class="hidden space-y-6">
+                <h2 class="text-xl font-bold text-white tracking-tight">⏰ Cài Đặt Hạn Mức Giờ Dùng</h2>
+
+                <form id="policy-form" class="space-y-6">
+                    <!-- Thời gian Ngày thường & Cuối tuần -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                            <label class="block text-xs font-semibold text-slate-300 mb-2">Thứ Hai - Thứ Sáu (Phút/ngày):</label>
+                            <input type="number" id="quota_weekday" value="{{ latest_policy.quota_weekday if latest_policy else 90 }}" min="1" required
+                                class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                            <label class="block text-xs font-semibold text-slate-300 mb-2">Thứ Bảy & Chủ Nhật (Phút/ngày):</label>
+                            <input type="number" id="quota_weekend" value="{{ latest_policy.quota_weekend if latest_policy else 120 }}" min="1" required
+                                class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Khung giờ cấm / đi ngủ -->
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-slate-300">🌙 Khung Giờ Cấm / Giới Hạn Đêm & Nghỉ Trưa</span>
-                            <button type="button" onclick="addBlockWindow()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition shadow">
-                                + Thêm khung giờ
+                            <span class="text-sm font-semibold text-slate-200">🌙 Giờ Đi Ngủ & Giờ Nghỉ (Máy tự khóa)</span>
+                            <button type="button" onclick="addBlockWindow()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition">
+                                + Thêm giờ nghỉ
                             </button>
                         </div>
                         
                         <div id="block-windows-container" class="space-y-3">
-                            <div class="flex items-center gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-700/30">
+                            <div class="flex items-center gap-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800">
                                 <div class="flex-1">
-                                    <label class="block text-xs text-slate-400 mb-1">Giờ bắt đầu cấm:</label>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Bắt đầu khóa máy:</label>
                                     <input type="time" class="block-start w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="22:00" required>
                                 </div>
                                 <div class="flex-1">
-                                    <label class="block text-xs text-slate-400 mb-1">Giờ kết thúc:</label>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Mở khóa lại lúc:</label>
                                     <input type="time" class="block-end w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="06:00" required>
                                 </div>
                                 <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 mt-5 px-2 font-bold transition">✕</button>
@@ -87,294 +217,293 @@
                         </div>
                     </div>
 
-                    <!-- Ngân Sách Theo Nhóm Ứng Dụng (Hai Bộ Đếm Độc Lập) -->
-                    <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-700/40 space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-slate-300">📂 Ngân Sách Theo Nhóm Ứng Dụng (Độc Lập)</span>
-                            <span class="text-xs text-emerald-400 font-medium">Học tập không giới hạn / Giải trí có hạn mức</span>
-                        </div>
+                    <!-- Giới hạn riêng cho Game / Giải trí -->
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <span class="text-sm font-semibold text-slate-200">🎮 Giới Hạn Riêng Cho Game & Giải Trí</span>
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/30">
-                                <label class="block text-xs text-slate-400 mb-1">🎓 Nhóm Học Tập (Phút/ngày):</label>
+                            <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800">
+                                <label class="block text-xs text-slate-400 mb-1">Ứng dụng học tập (Phút/ngày):</label>
                                 <input type="number" id="quota_study" value="-1" required
                                     class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-emerald-400 font-mono text-sm focus:outline-none focus:border-blue-500">
-                                <span class="text-[10px] text-slate-500 mt-1 block">Nhập <code class="text-amber-300">-1</code> để không giới hạn.</span>
                             </div>
-                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/30">
-                                <label class="block text-xs text-slate-400 mb-1">🎮 Nhóm Trò Chơi / Giải trí (Phút/ngày):</label>
+                            <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800">
+                                <label class="block text-xs text-slate-400 mb-1">Trò chơi & Giải trí (Phút/ngày):</label>
                                 <input type="number" id="quota_games" value="45" min="0" required
                                     class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500">
-                                <span class="text-[10px] text-slate-500 mt-1 block">Hạn mức độc lập (Ví dụ: 45 phút).</span>
                             </div>
                         </div>
                     </div>
 
                     <button type="submit"
-                        class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-600/25">
-                        Lưu Chính Sách
+                        class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg shadow-blue-600/25">
+                        💾 Lưu Cài Đặt
                     </button>
                 </form>
-            </div>
+            </section>
 
-            <!-- Cột Phải: Thiết Bị & Yêu Cầu Của Trẻ -->
-            <div class="space-y-6">
-                <!-- Danh sách Thiết bị của trẻ -->
-                <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-6 space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
-                        <h2 class="text-lg font-bold text-white">Thiết Bị Của Con</h2>
-                        <span class="text-xs text-slate-400 font-mono">{{ devices|length }} máy</span>
-                    </div>
+            <!-- TAB 3: MÁY TÍNH CỦA CON -->
+            <section id="section-devices" class="hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-white tracking-tight">💻 Máy Tính Của Con</h2>
+                    <button onclick="openPairingModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition shadow">
+                        + Kết Nối Máy Mới
+                    </button>
+                </div>
 
-                    <div class="space-y-3">
-                        {% if devices %}
-                            {% for device in devices %}
-                            <div class="p-4 bg-slate-900/60 border border-slate-700/40 rounded-xl flex items-center justify-between">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% if devices %}
+                        {% for device in devices %}
+                        <div class="p-5 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
+                            <div class="flex items-start justify-between">
                                 <div>
-                                    <h3 class="font-semibold text-white text-sm flex items-center space-x-2">
-                                        <span>💻 {{ device.device_name }}</span>
-                                    </h3>
-                                    <p class="text-xs text-slate-400">Trẻ sở hữu: <b class="text-slate-200">{{ device.child_name }}</b></p>
-                                    <p class="text-[10px] font-mono text-slate-500 mt-1">ID: {{ device.id[:16] }}...</p>
+                                    <h3 class="font-bold text-white text-base">💻 {{ device.device_name }}</h3>
+                                    <p class="text-xs text-slate-400 mt-0.5">Máy của: <b class="text-white">{{ device.child_name or 'Chưa gán bé' }}</b></p>
                                 </div>
-                                <div class="text-right">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        {{ device.status }}
+                                <div>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' if device.status == 'online' else 'bg-slate-700/30 text-slate-400 border border-slate-700/50' }}">
+                                        {{ 'Đang bật' if device.status == 'online' else 'Đang tắt' }}
                                     </span>
-                                    <p class="text-[10px] text-slate-500 mt-1">Policy v{{ device.policy_version }}</p>
                                 </div>
+                            </div>
+
+                            <!-- Bộ 3 Nút Bấm Nhanh Cho Cha Mẹ -->
+                            <div class="pt-2 border-t border-slate-800 flex items-center gap-2">
+                                <button onclick="sendEmergencyCommand('{{ device.id }}', 'lock_now')" class="flex-1 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 rounded-xl text-xs font-semibold transition" title="Khóa máy con ngay lập tức">
+                                    🔒 Khóa máy ngay
+                                </button>
+                                <button onclick="sendEmergencyCommand('{{ device.id }}', 'unlock')" class="flex-1 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-semibold transition" title="Mở khóa máy cho con">
+                                    🔓 Mở máy
+                                </button>
+                                <button onclick="sendEmergencyCommand('{{ device.id }}', 'add_time', 15)" class="flex-1 py-2 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 rounded-xl text-xs font-semibold transition" title="Thưởng thêm 15 phút">
+                                    ⏰ Cho thêm 15p
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-span-full text-center py-12 bg-slate-900/40 rounded-2xl border border-dashed border-slate-800 space-y-3">
+                            <p class="text-slate-300 font-medium">Chưa có máy tính nào được kết nối</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- TAB 4: TIN NHẮN TỪ CON -->
+            <section id="section-requests" class="hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-white tracking-tight">🔔 Lời Nhắn Từ Con</h2>
+                    <button onclick="loadChildRequests()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs rounded-xl border border-slate-700 transition">
+                        🔄 Kiểm tra tin nhắn
+                    </button>
+                </div>
+
+                <div id="requests-container" class="space-y-3">
+                    <p class="text-xs text-slate-400 text-center py-8">Đang kiểm tra lời nhắn từ con...</p>
+                </div>
+            </section>
+
+            <!-- TAB 5: CHẶN TRANG WEB -->
+            <section id="section-domains" class="hidden space-y-6">
+                <h2 class="text-xl font-bold text-white tracking-tight">🌐 Chặn Trang Web</h2>
+
+                <form id="domain-form" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Địa chỉ web:</label>
+                        <input type="text" id="domain-input" placeholder="trang-web.com" required
+                            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Thể loại:</label>
+                        <select id="domain-category" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500">
+                            <option value="Mạng xã hội">Mạng xã hội</option>
+                            <option value="Trò chơi">Trò chơi</option>
+                            <option value="Giải trí">Giải trí</option>
+                            <option value="Không phù hợp">Không phù hợp</option>
+                            <option value="Giáo dục">Giáo dục</option>
+                            <option value="Chưa phân loại" selected>Khác</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-sm transition shadow">
+                            + Chặn Trang Này
+                        </button>
+                    </div>
+                </form>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-semibold text-slate-300">Danh Sách Trang Web Đang Chặn</h3>
+                        <select id="filter-category" onchange="loadBlockedDomains()" class="px-3 py-1 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none">
+                            <option value="Tất cả">Tất cả thể loại</option>
+                            <option value="Mạng xã hội">Mạng xã hội</option>
+                            <option value="Trò chơi">Trò chơi</option>
+                            <option value="Giải trí">Giải trí</option>
+                            <option value="Không phù hợp">Không phù hợp</option>
+                            <option value="Giáo dục">Giáo dục</option>
+                            <option value="Chưa phân loại">Khác</option>
+                        </select>
+                    </div>
+                    <div id="blocked-domains-list" class="divide-y divide-slate-800 bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                        <div class="p-4 text-center text-xs text-slate-400">Đang tải danh sách...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: CHẶN GAME & ỨNG DỤNG -->
+            <section id="section-apps" class="hidden space-y-6">
+                <h2 class="text-xl font-bold text-white tracking-tight">🛡️ Chặn Game & Ứng Dụng</h2>
+
+                <form id="app-form" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs text-slate-400 mb-1">Tên ứng dụng hoặc game:</label>
+                        <input type="text" id="app-process-input" placeholder="roblox.exe" required
+                            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                        <input type="hidden" id="app-hash-input" value="">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-sm transition shadow">
+                            + Chặn Ứng Dụng Này
+                        </button>
+                    </div>
+                </form>
+
+                <div class="space-y-3">
+                    <h3 class="text-sm font-semibold text-slate-300">Danh Sách Game & Ứng Dụng Đang Chặn</h3>
+                    <div id="blocked-apps-list" class="divide-y divide-slate-800 bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                        <div class="p-4 text-center text-xs text-slate-400">Đang tải danh sách...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 7: LỊCH SỬ & BẢO MẬT -->
+            <section id="section-privacy" class="hidden space-y-6">
+                <h2 class="text-xl font-bold text-white tracking-tight">🔒 Lịch Sử & Quyền Riêng Tư</h2>
+
+                <!-- Xóa dữ liệu -->
+                <div class="flex items-center justify-between bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                    <div>
+                        <span class="text-sm font-semibold text-slate-200 block">Xóa lịch sử sử dụng máy tính của con</span>
+                    </div>
+                    <button onclick="purgeData()" class="px-4 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/40 font-semibold rounded-xl text-xs transition">
+                        Xóa Lịch Sử
+                    </button>
+                </div>
+
+                <!-- Nhật ký thao tác -->
+                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
+                    <h3 class="text-sm font-semibold text-slate-200">Nhật Ký Cài Đặt Của Bạn</h3>
+                    <div class="divide-y divide-slate-800 max-h-80 overflow-y-auto text-xs">
+                        {% if recent_audits %}
+                            {% for log in recent_audits %}
+                            <div class="py-2.5 flex justify-between items-center">
+                                <div>
+                                    <span class="text-white font-medium">{{ 'Đã cập nhật giờ dùng máy' if 'POLICY' in log.action else ('Đã gửi lệnh khẩn' if 'EMERGENCY' in log.action else log.action) }}</span>
+                                    <span class="text-slate-400 text-[11px] block mt-0.5">{{ log.new_value }}</span>
+                                </div>
+                                <span class="text-slate-400 text-[11px]">{{ log.timestamp.strftime('%H:%M %d/%m/%Y') }}</span>
                             </div>
                             {% endfor %}
                         {% else %}
-                            <div class="text-center py-8 space-y-2">
-                                <p class="text-slate-400 text-sm font-medium">Chưa có thiết bị nào được ghép đôi</p>
-                                <p class="text-xs text-slate-500">Bấm nút "Ghép Đôi Thiết Bị Mới" ở góc phải phía trên để tạo mã kết nối.</p>
-                            </div>
+                            <div class="py-6 text-center text-slate-400">Chưa có hoạt động nào được ghi nhận.</div>
                         {% endif %}
                     </div>
                 </div>
+            </section>
 
-                <!-- Widget Phê Duyệt Yêu Cầu Của Trẻ (NT3) -->
-                <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-6 space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
-                        <h2 class="text-base font-bold text-white">🔔 Yêu Cầu Từ Con (NT3)</h2>
-                        <button onclick="loadChildRequests()" class="text-xs text-blue-400 hover:underline">Tải lại</button>
-                    </div>
-                    <div id="requests-container" class="space-y-3 max-h-56 overflow-y-auto">
-                        <p class="text-xs text-slate-400 text-center py-4">Đang kiểm tra yêu cầu...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </main>
+    </div>
 
-        <!-- Quản lý Danh sách Tên Miền Bị Chặn theo 6 nhóm (F2) -->
-        <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-6 space-y-6">
-            <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-white">🌐 Quản Lý Danh Sách Tên Miền Bị Chặn (F2)</h2>
-                    <p class="text-xs text-slate-400">Phân loại chi tiết theo 6 nhóm nội dung</p>
-                </div>
-            </div>
+    <!-- 3. FOOTER Ở CUỐI TRANG -->
+    <footer class="py-3 border-t border-slate-800/80 bg-slate-900/80 px-4 text-center text-xs text-slate-400 flex-none flex items-center justify-center space-x-1 sm:space-x-2 flex-wrap">
+        <span>🌟 2026 – OpenGuardKids</span>
+        <span>📍 Trường Đại học Khoa học Tự Nhiên - VNUHCM</span>
+        <span class="inline-flex items-center space-x-1">
+            <span>🔗</span>
+            <a href="https://github.com" target="_blank" class="hover:text-blue-400 hover:underline">GitHub</a>
+        </span>
+        <span>|</span>
+        <span class="inline-flex items-center space-x-1">
+            <span>📧</span>
+            <a href="mailto:support@openguardkids.vn" class="hover:text-blue-400 hover:underline">Liên hệ</a>
+        </span>
+    </footer>
 
-            <form id="domain-form" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/40 p-4 rounded-xl border border-slate-700/40">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Tên miền (Ví dụ: facebook.com):</label>
-                    <input type="text" id="domain-input" placeholder="nhap-ten-mien.com" required
-                        class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Nhóm phân loại:</label>
-                    <select id="domain-category" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500">
-                        <option value="Mạng xã hội">Mạng xã hội</option>
-                        <option value="Trò chơi">Trò chơi</option>
-                        <option value="Giải trí">Giải trí</option>
-                        <option value="Không phù hợp">Không phù hợp</option>
-                        <option value="Giáo dục">Giáo dục</option>
-                        <option value="Chưa phân loại" selected>Chưa phân loại</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg text-sm transition shadow">
-                        + Thêm vào danh sách chặn
-                    </button>
-                </div>
-            </form>
-
-            <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm font-semibold text-slate-300">Danh Sách Tên Miền Hiện Tại</h3>
-                    <select id="filter-category" onchange="loadBlockedDomains()" class="px-3 py-1 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none">
-                        <option value="Tất cả">Tất cả nhóm</option>
-                        <option value="Mạng xã hội">Mạng xã hội</option>
-                        <option value="Trò chơi">Trò chơi</option>
-                        <option value="Giải trí">Giải trí</option>
-                        <option value="Không phù hợp">Không phù hợp</option>
-                        <option value="Giáo dục">Giáo dục</option>
-                        <option value="Chưa phân loại">Chưa phân loại</option>
-                    </select>
-                </div>
-                <div id="blocked-domains-list" class="divide-y divide-slate-700/50 bg-slate-900/60 border border-slate-700/40 rounded-xl overflow-hidden">
-                    <div class="p-4 text-center text-xs text-slate-400">Đang tải danh sách...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quản lý Danh sách Ứng Dụng Bị Chặn (Tên tiến trình + SHA-256) (F2) -->
-        <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-6 space-y-6">
-            <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-white">💻 Quản Lý Ứng Dụng Bị Chặn (F2)</h2>
-                    <p class="text-xs text-slate-400">Kiểm soát dựa trên Tên tiến trình và mã băm SHA-256 của tệp .exe</p>
-                </div>
-            </div>
-
-            <form id="app-form" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/40 p-4 rounded-xl border border-slate-700/40">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Tên tiến trình (.exe):</label>
-                    <input type="text" id="app-process-input" placeholder="ví dụ: game.exe" required
-                        class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Mã băm SHA-256 (Tùy chọn):</label>
-                    <input type="text" id="app-hash-input" placeholder="Chuỗi SHA-256 của file..."
-                        class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500">
-                </div>
-                <div class="flex items-end">
-                    <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg text-sm transition shadow">
-                        + Chặn Ứng Dụng
-                    </button>
-                </div>
-            </form>
-
-            <div class="space-y-3">
-                <h3 class="text-sm font-semibold text-slate-300">Danh Sách Ứng Dụng Đang Chặn</h3>
-                <div id="blocked-apps-list" class="divide-y divide-slate-700/50 bg-slate-900/60 border border-slate-700/40 rounded-xl overflow-hidden">
-                    <div class="p-4 text-center text-xs text-slate-400">Đang tải danh sách...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Widget Thống Kê Tổng Quan & Top 10 (F3) -->
-        <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-6 space-y-6">
-            <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-white">📊 Báo Cáo Thống Kê Sử Dụng (F3)</h2>
-                    <p class="text-xs text-slate-400">Tổng quan thời lượng và Top 10 ứng dụng/tên miền truy cập</p>
-                </div>
-                <button onclick="loadReportsSummary()" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs transition">Làm mới dữ liệu</button>
-            </div>
-
-            <!-- Thống kê tổng quan -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/40">
-                    <span class="text-xs text-slate-400 block mb-1">Tổng thời gian sử dụng</span>
-                    <span id="stat-total-hours" class="text-2xl font-bold text-emerald-400 font-mono">-- h</span>
-                </div>
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/40">
-                    <span class="text-xs text-slate-400 block mb-1">Ứng dụng bị chặn</span>
-                    <span id="stat-blocked-apps" class="text-2xl font-bold text-amber-400 font-mono">--</span>
-                </div>
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/40">
-                    <span class="text-xs text-slate-400 block mb-1">Trang web bị chặn</span>
-                    <span id="stat-blocked-domains" class="text-2xl font-bold text-red-400 font-mono">--</span>
-                </div>
-            </div>
-
-            <!-- Bảng Top 10 Ứng dụng & Top 10 Tên miền -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-                <div>
-                    <h3 class="text-sm font-semibold text-slate-300 mb-3">🔥 Top 10 Ứng Dụng Truy Cập Nhiều Nhất</h3>
-                    <div id="top-apps-list" class="bg-slate-900/60 border border-slate-700/40 rounded-xl divide-y divide-slate-700/50 max-h-64 overflow-y-auto text-xs">
-                        <div class="p-3 text-center text-slate-400">Đang tải...</div>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="text-sm font-semibold text-slate-300 mb-3">🌐 Top 10 Tên Miền Truy Cập Nhiều Nhất</h3>
-                    <div id="top-domains-list" class="bg-slate-900/60 border border-slate-700/40 rounded-xl divide-y divide-slate-700/50 max-h-64 overflow-y-auto text-xs">
-                        <div class="p-3 text-center text-slate-400">Đang tải...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quản lý Quyền Riêng Tư & Xóa dữ liệu 90 ngày (Nghị định 13/2023) -->
-        <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-6 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-700/50 pb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-white">🔒 Quyền Riêng Tư & Bảo Vệ Dữ Liệu (Nghị định 13/2023)</h2>
-                    <p class="text-xs text-slate-400">Hệ thống tự động xóa sự kiện cũ quá 90 ngày. Phụ huynh có thể chủ động xóa ngay lập tức.</p>
-                </div>
-            </div>
-            <div class="flex items-center justify-between bg-slate-900/40 p-4 rounded-xl border border-slate-700/40">
-                <div>
-                    <span class="text-sm font-medium text-slate-200 block">Xóa toàn bộ dữ liệu lịch sử sự kiện của con</span>
-                    <span class="text-xs text-slate-400">Thao tác này sẽ xóa vĩnh viễn toàn bộ log hoạt động lưu trên Server theo quyền cá nhân.</span>
-                </div>
-                <button onclick="purgeData()" class="px-4 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/40 font-medium rounded-lg text-xs transition">
-                    Xóa Toàn Bộ Dữ Liệu
-                </button>
-            </div>
-        </div>
-    </main>
-
-    <!-- Modal Ghép Đôi Thiết Bị -->
+    <!-- MODAL KẾT NỐI MÁY CỦA CON -->
     <div id="pairing-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
             <button onclick="closePairingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 ✕
             </button>
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center border border-emerald-500/30">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
+                <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center border border-emerald-500/30 text-xl">
+                    🔗
                 </div>
                 <div>
-                    <h3 class="font-bold text-white">Tạo Mã Ghép Đôi Thiết Bị</h3>
-                    <p class="text-xs text-slate-400">Nghị định 13/2023 - Gán máy tính cho con</p>
+                    <h3 class="font-bold text-white text-base">Kết Nối Máy Tính Của Con</h3>
                 </div>
             </div>
 
             <div id="modal-error-alert" class="hidden p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl font-medium"></div>
 
             <div class="space-y-3">
-                <label class="block text-sm font-medium text-slate-300">Tên Đăng Nhập Tài Khoản Của Trẻ:</label>
-                <input type="text" id="modal-child-username" placeholder="Ví dụ: be_an, be_minh..." required
-                    class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-emerald-500">
-                <p class="text-[11px] text-slate-400">Bắt buộc gõ chính xác tên đăng nhập duy nhất của bé đã đăng ký trong hệ thống.</p>
+                <label class="block text-xs font-semibold text-slate-300">Tên tài khoản của con:</label>
+                <input type="text" id="modal-child-username" placeholder="be_lan" required
+                    class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-emerald-500">
 
-                <button onclick="generatePairingCode()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition">
-                    Sinh Mã Ghép Đôi 8 Ký Tự
+                <button onclick="generatePairingCode()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-emerald-600/20">
+                    Tạo Mã Kết Nối
                 </button>
             </div>
 
-            <div id="pairing-result" class="hidden p-4 bg-slate-900/80 border border-emerald-500/30 rounded-xl text-center space-y-2">
-                <span class="text-xs text-slate-400">Mã Ghép Đôi cho <b id="paired-child-display" class="text-white"></b> (Hạn 10 phút):</span>
+            <div id="pairing-result" class="hidden p-4 bg-slate-950/80 border border-emerald-500/30 rounded-xl text-center space-y-2">
+                <span class="text-xs text-slate-400">Mã kết nối cho <b id="paired-child-display" class="text-white"></b> (Hiệu lực 10 phút):</span>
                 <div id="generated-code" class="text-2xl font-mono font-bold text-emerald-400 tracking-wider"></div>
-                <p class="text-[11px] text-slate-400">Nhập mã này tại máy con để kích hoạt kết nối.</p>
             </div>
         </div>
     </div>
 
+    <!-- JAVASCRIPT CONTROLLER -->
     <script>
+        const currentParentUser = "{{ parent_username }}" || (new URLSearchParams(window.location.search)).get('username') || localStorage.getItem('ogk_username') || 'parent_admin';
+
         function logout() {
-            localStorage.removeItem('ogk_token');
-            localStorage.removeItem('ogk_role');
-            localStorage.removeItem('ogk_username');
+            localStorage.clear();
             window.location.href = '/login';
+        }
+
+        // Chuyển tab nhanh không cần tải lại trang
+        function switchTab(tabKey) {
+            const tabs = ['overview', 'policy', 'devices', 'requests', 'domains', 'apps', 'privacy'];
+            tabs.forEach(t => {
+                const section = document.getElementById(`section-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tabKey) {
+                    if (section) section.classList.remove('hidden');
+                    if (btn) btn.classList.add('active');
+                } else {
+                    if (section) section.classList.add('hidden');
+                    if (btn) btn.classList.remove('active');
+                }
+            });
+
+            if (tabKey === 'overview') loadReportsSummary();
+            if (tabKey === 'requests') loadChildRequests();
+            if (tabKey === 'domains') loadBlockedDomains();
+            if (tabKey === 'apps') loadBlockedApps();
         }
 
         function addBlockWindow(startTime = "11:00", endTime = "13:00") {
             const container = document.getElementById('block-windows-container');
             const row = document.createElement('div');
-            row.className = "flex items-center gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-700/30";
+            row.className = "flex items-center gap-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800";
             row.innerHTML = `
                 <div class="flex-1">
-                    <label class="block text-xs text-slate-400 mb-1">Giờ bắt đầu cấm:</label>
+                    <label class="block text-[11px] text-slate-400 mb-1">Bắt đầu khóa máy:</label>
                     <input type="time" class="block-start w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="${startTime}" required>
                 </div>
                 <div class="flex-1">
-                    <label class="block text-xs text-slate-400 mb-1">Giờ kết thúc:</label>
+                    <label class="block text-[11px] text-slate-400 mb-1">Mở khóa lại lúc:</label>
                     <input type="time" class="block-end w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="${endTime}" required>
                 </div>
                 <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 mt-5 px-2 font-bold transition">✕</button>
@@ -396,13 +525,13 @@
                         if (parts.length === 2) {
                             if (index === 0) {
                                 container.innerHTML = `
-                                    <div class="flex items-center gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-700/30">
+                                    <div class="flex items-center gap-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800">
                                         <div class="flex-1">
-                                            <label class="block text-xs text-slate-400 mb-1">Giờ bắt đầu cấm:</label>
+                                            <label class="block text-[11px] text-slate-400 mb-1">Bắt đầu khóa máy:</label>
                                             <input type="time" class="block-start w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="${parts[0]}" required>
                                         </div>
                                         <div class="flex-1">
-                                            <label class="block text-xs text-slate-400 mb-1">Giờ kết thúc:</label>
+                                            <label class="block text-[11px] text-slate-400 mb-1">Mở khóa lại lúc:</label>
                                             <input type="time" class="block-end w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="${parts[1]}" required>
                                         </div>
                                         <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 mt-5 px-2 font-bold transition">✕</button>
@@ -431,85 +560,167 @@
             loadBlockedApps();
         });
 
-        // 1. Tải báo cáo thống kê & Top 10 (F3)
+        let usageChartInstance = null;
+
+        // Tải báo cáo thời gian dùng của con
         async function loadReportsSummary() {
             try {
-                const res = await fetch('/api/reports/summary');
+                const res = await fetch(`/api/reports/summary?parent_username=${encodeURIComponent(currentParentUser)}`);
                 const data = await res.json();
                 if (res.ok) {
                     document.getElementById('stat-total-hours').textContent = data.total_usage_hours + 'h';
                     document.getElementById('stat-blocked-apps').textContent = data.blocked_stats.apps_blocked;
                     document.getElementById('stat-blocked-domains').textContent = data.blocked_stats.domains_blocked;
 
-                    // Hiển thị Top 10 Ứng dụng
+                    if (data.daily_chart && document.getElementById('usageChart')) {
+                        const ctx = document.getElementById('usageChart').getContext('2d');
+                        const labels = data.daily_chart.map(d => `${d.day_name} (${d.date})`);
+                        const hours = data.daily_chart.map(d => d.hours);
+
+                        if (usageChartInstance) {
+                            usageChartInstance.destroy();
+                        }
+
+                        usageChartInstance = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Thời gian dùng (giờ)',
+                                    data: hours,
+                                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                                    borderColor: 'rgba(59, 130, 246, 1)',
+                                    borderWidth: 1,
+                                    borderRadius: 8
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { color: '#94a3b8' },
+                                        grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                                    },
+                                    x: {
+                                        ticks: { color: '#94a3b8' },
+                                        grid: { display: false }
+                                    }
+                                },
+                                plugins: {
+                                    legend: { labels: { color: '#e2e8f0' } }
+                                }
+                            }
+                        });
+                    }
+
                     const appsContainer = document.getElementById('top-apps-list');
                     if (data.top_apps && data.top_apps.length > 0) {
                         appsContainer.innerHTML = "";
                         data.top_apps.forEach((app, idx) => {
-                            appsContainer.innerHTML += `<div class="p-2.5 flex justify-between items-center"><span class="font-mono text-blue-300">${idx + 1}. ${app.name}</span><span class="font-mono text-slate-400">${app.count} lần</span></div>`;
+                            appsContainer.innerHTML += `<div class="p-2.5 flex justify-between items-center"><span class="text-blue-300">${idx + 1}. ${app.name}</span><span class="text-slate-400 font-mono">${app.count} lần</span></div>`;
                         });
                     } else {
-                        appsContainer.innerHTML = `<div class="p-3 text-center text-slate-400">Chưa có dữ liệu ứng dụng.</div>`;
+                        appsContainer.innerHTML = `<div class="p-4 text-center text-slate-400">Chưa có ứng dụng nào được mở.</div>`;
                     }
 
-                    // Hiển thị Top 10 Tên miền
                     const domainsContainer = document.getElementById('top-domains-list');
                     if (data.top_domains && data.top_domains.length > 0) {
                         domainsContainer.innerHTML = "";
                         data.top_domains.forEach((dom, idx) => {
-                            domainsContainer.innerHTML += `<div class="p-2.5 flex justify-between items-center"><span class="font-mono text-emerald-300">${idx + 1}. ${dom.name}</span><span class="font-mono text-slate-400">${dom.count} lần</span></div>`;
+                            domainsContainer.innerHTML += `<div class="p-2.5 flex justify-between items-center"><span class="text-emerald-300">${idx + 1}. ${dom.name}</span><span class="text-slate-400 font-mono">${dom.count} lần</span></div>`;
                         });
                     } else {
-                        domainsContainer.innerHTML = `<div class="p-3 text-center text-slate-400">Chưa có dữ liệu tên miền.</div>`;
+                        domainsContainer.innerHTML = `<div class="p-4 text-center text-slate-400">Chưa có trang web nào được xem.</div>`;
                     }
                 }
             } catch (e) {
-                console.error("Lỗi tải thống kê:", e);
+                console.error("Lỗi:", e);
             }
         }
 
-        // Xóa toàn bộ dữ liệu (Nghị định 13/2023)
-        async function purgeData() {
-            if (!confirm("Cảnh báo: Bạn có chắc chắn muốn xóa vĩnh viễn toàn bộ dữ liệu lịch sử sự kiện của con theo Nghị định 13/2023 không?")) return;
+        // Gửi lệnh điều khiển máy tính con
+        async function sendEmergencyCommand(deviceId, command, minutes = 15) {
             try {
-                const res = await fetch('/api/privacy/purge-data', { method: 'DELETE' });
+                const res = await fetch('/api/commands/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ device_id: deviceId, command, minutes })
+                });
+                const data = await res.json();
+                alert(data.message || 'Đã gửi lệnh tới máy tính của con!');
+            } catch (e) {
+                alert('Lỗi kết nối tới máy chủ.');
+            }
+        }
+
+        // Xóa toàn bộ dữ liệu của con (Server + Agent Offline Cache - Nghị định 13/2023, F3 BẮT BUỘC)
+        async function purgeData() {
+            if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu của con không?\nThao tác này sẽ xóa đồng thời trên máy chủ và xóa sạch bộ đệm sự kiện trong máy tính của con!")) return;
+            try {
+                let url = '/api/privacy/purge-data?purge_all=true';
+                if (currentParentUser) {
+                    url += `&parent_username=${encodeURIComponent(currentParentUser)}`;
+                }
+                const res = await fetch(url, { method: 'DELETE' });
                 const data = await res.json();
                 if (res.ok) {
-                    alert(data.message);
+                    alert(data.message || 'Đã xóa toàn bộ dữ liệu của con đồng thời trên máy chủ và máy trẻ thành công!');
                     loadReportsSummary();
                 } else {
                     alert('Lỗi xóa dữ liệu.');
                 }
             } catch (e) {
-                alert('Lỗi kết nối tới Server.');
+                alert('Lỗi kết nối tới máy chủ.');
             }
         }
 
-        // 2. Tải danh sách yêu cầu từ con (NT3)
+        // Tải danh sách lời nhắn từ con
         async function loadChildRequests() {
             const container = document.getElementById('requests-container');
+            const badge = document.getElementById('requests-badge');
             try {
-                const res = await fetch('/api/requests');
+                const res = await fetch(`/api/requests?parent_username=${encodeURIComponent(currentParentUser)}`);
                 const requests = await res.json();
                 if (res.ok && requests.length > 0) {
                     container.innerHTML = "";
+                    let pendingCount = 0;
                     requests.forEach(req => {
+                        if (req.status === 'pending') pendingCount++;
                         const item = document.createElement('div');
-                        item.className = "p-3 bg-slate-900/60 border border-slate-700/40 rounded-xl flex items-center justify-between text-xs";
+                        item.className = "p-4 bg-slate-900/60 border border-slate-800 rounded-2xl flex items-center justify-between text-xs";
+                        
+                        let labelType = "Lời nhắn";
+                        if (req.request_type === 'extra_time') labelType = "Xin thêm giờ";
+                        if (req.request_type === 'report_false_positive') labelType = "Báo mở lại web/app";
+
                         item.innerHTML = `
                             <div>
-                                <span class="font-bold text-amber-300">${req.request_type}</span>: ${req.content}
-                                <span class="block text-[10px] text-slate-500 mt-0.5">Trạng thái: <b class="${req.status === 'approved' ? 'text-emerald-400' : 'text-amber-400'}">${req.status}</b></span>
+                                <span class="font-bold text-amber-300 uppercase">${labelType}</span>: <span class="text-white text-sm font-medium ml-1">${req.content}</span>
+                                <span class="block text-[11px] text-slate-400 mt-1">Trạng thái: <b class="${req.status === 'approved' ? 'text-emerald-400' : (req.status === 'rejected' ? 'text-red-400' : 'text-amber-400')}">${req.status === 'approved' ? 'Đã đồng ý' : (req.status === 'rejected' ? 'Đã từ chối' : 'Đang chờ bạn duyệt')}</b></span>
                             </div>
-                            ${req.status === 'pending' ? `<button onclick="approveRequest(${req.id})" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition">Duyệt (+15p)</button>` : '<span class="text-slate-500">Đã xử lý</span>'}
+                            ${req.status === 'pending' ? `
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="approveRequest(${req.id})" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium transition shadow">Đồng ý (+15p)</button>
+                                    <button onclick="rejectRequest(${req.id})" class="px-3 py-1.5 bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white rounded-xl font-medium transition">Từ chối</button>
+                                </div>
+                            ` : '<span class="text-slate-400 font-medium">Đã xử lý</span>'}
                         `;
                         container.appendChild(item);
                     });
+                    if (pendingCount > 0 && badge) {
+                        badge.textContent = pendingCount;
+                        badge.classList.remove('hidden');
+                    } else if (badge) {
+                        badge.classList.add('hidden');
+                    }
                 } else {
-                    container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Không có yêu cầu nào đang chờ xử lý.</p>`;
+                    container.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">Không có tin nhắn nào từ con.</p>`;
+                    if (badge) badge.classList.add('hidden');
                 }
             } catch (e) {
-                container.innerHTML = `<p class="text-xs text-red-400 text-center py-4">Lỗi kết nối tải yêu cầu.</p>`;
+                container.innerHTML = `<p class="text-xs text-red-400 text-center py-8">Lỗi kiểm tra tin nhắn.</p>`;
             }
         }
 
@@ -518,17 +729,32 @@
                 const res = await fetch(`/api/requests/${requestId}/approve`, { method: 'POST' });
                 const data = await res.json();
                 if (res.ok) {
-                    alert(data.message);
+                    alert('Đã cho phép con thêm 15 phút!');
                     loadChildRequests();
                 } else {
-                    alert('Lỗi duyệt yêu cầu');
+                    alert('Lỗi phê duyệt');
                 }
             } catch (e) {
-                alert('Lỗi kết nối tới Server.');
+                alert('Lỗi kết nối tới máy chủ.');
             }
         }
 
-        // 3. Quản lý danh sách tên miền bị chặn (F2)
+        async function rejectRequest(requestId) {
+            try {
+                const res = await fetch(`/api/requests/${requestId}/reject`, { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Đã từ chối yêu cầu.');
+                    loadChildRequests();
+                } else {
+                    alert('Lỗi thao tác');
+                }
+            } catch (e) {
+                alert('Lỗi kết nối tới máy chủ.');
+            }
+        }
+
+        // Tải danh sách trang web chặn
         async function loadBlockedDomains() {
             const category = document.getElementById('filter-category').value;
             const container = document.getElementById('blocked-domains-list');
@@ -545,21 +771,21 @@
                     container.innerHTML = "";
                     domains.forEach(item => {
                         const row = document.createElement('div');
-                        row.className = "p-3 flex items-center justify-between text-sm hover:bg-slate-800/50 transition";
+                        row.className = "p-3.5 flex items-center justify-between text-sm hover:bg-slate-800/40 transition";
                         row.innerHTML = `
                             <div class="flex items-center space-x-3">
-                                <span class="font-mono font-medium text-red-400">🌐 ${item.domain}</span>
+                                <span class="font-medium text-red-400">🌐 ${item.domain}</span>
                                 <span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-700 rounded-full text-[10px]">${item.category}</span>
                             </div>
-                            <button onclick="deleteDomain(${item.id})" class="text-slate-500 hover:text-red-400 text-xs font-medium px-2 py-1 transition">Xóa</button>
+                            <button onclick="deleteDomain(${item.id})" class="text-slate-400 hover:text-red-400 text-xs font-medium px-2 py-1 transition">Bỏ chặn</button>
                         `;
                         container.appendChild(row);
                     });
                 } else {
-                    container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">Không có tên miền nào bị chặn trong nhóm này.</div>`;
+                    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Chưa có trang web nào trong nhóm này.</div>`;
                 }
             } catch (e) {
-                container.innerHTML = `<div class="p-4 text-center text-xs text-red-400">Lỗi kết nối khi tải danh sách tên miền.</div>`;
+                container.innerHTML = `<div class="p-6 text-center text-xs text-red-400">Lỗi tải danh sách.</div>`;
             }
         }
 
@@ -579,28 +805,26 @@
                     document.getElementById('domain-input').value = "";
                     loadBlockedDomains();
                 } else {
-                    alert(data.detail || 'Lỗi thêm tên miền.');
+                    alert(data.detail || 'Lỗi thêm trang web.');
                 }
             } catch (e) {
-                alert('Lỗi kết nối tới Server.');
+                alert('Lỗi kết nối.');
             }
         });
 
         async function deleteDomain(domainId) {
-            if (!confirm("Bạn có chắc chắn muốn bỏ chặn tên miền này?")) return;
+            if (!confirm("Bỏ chặn trang web này?")) return;
             try {
                 const res = await fetch(`/api/domains/${domainId}`, { method: 'DELETE' });
                 if (res.ok) {
                     loadBlockedDomains();
-                } else {
-                    alert('Lỗi khi xóa tên miền.');
                 }
             } catch (e) {
-                alert('Lỗi kết nối tới Server.');
+                alert('Lỗi kết nối.');
             }
         }
 
-        // 4. Quản lý danh sách ứng dụng bị chặn (Tên + SHA-256) (F2)
+        // Tải danh sách ứng dụng chặn
         async function loadBlockedApps() {
             const container = document.getElementById('blocked-apps-list');
             try {
@@ -610,59 +834,57 @@
                     container.innerHTML = "";
                     apps.forEach(item => {
                         const row = document.createElement('div');
-                        row.className = "p-3 flex items-center justify-between text-sm hover:bg-slate-800/50 transition";
+                        row.className = "p-3.5 flex items-center justify-between text-sm hover:bg-slate-800/40 transition";
                         row.innerHTML = `
-                            <div class="space-y-0.5">
-                                <span class="font-mono font-bold text-red-400">⚙️ ${item.process_name}</span>
-                                <span class="block font-mono text-[10px] text-slate-400">SHA-256: ${item.file_hash ? item.file_hash : 'Chặn theo tên tiến trình'}</span>
+                            <div>
+                                <span class="font-bold text-red-400">⚙️ ${item.process_name}</span>
                             </div>
-                            <button onclick="deleteApp(${item.id})" class="text-slate-500 hover:text-red-400 text-xs font-medium px-2 py-1 transition">Xóa</button>
+                            <button onclick="deleteApp(${item.id})" class="text-slate-400 hover:text-red-400 text-xs font-medium px-2 py-1 transition">Bỏ chặn</button>
                         `;
                         container.appendChild(row);
                     });
                 } else {
-                    container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">Chưa có ứng dụng nào bị chặn.</div>`;
+                    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Chưa có game hoặc ứng dụng nào bị chặn.</div>`;
                 }
             } catch (e) {
-                container.innerHTML = `<div class="p-4 text-center text-xs text-red-400">Lỗi kết nối khi tải danh sách ứng dụng.</div>`;
+                container.innerHTML = `<div class="p-6 text-center text-xs text-red-400">Lỗi tải danh sách.</div>`;
             }
         }
 
         document.getElementById('app-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const process_name = document.getElementById('app-process-input').value.trim();
-            const file_hash = document.getElementById('app-hash-input').value.trim() || null;
+            let process_name = document.getElementById('app-process-input').value.trim();
+            if (!process_name.toLowerCase().endsWith('.exe')) {
+                process_name += '.exe';
+            }
 
             try {
                 const res = await fetch('/api/apps/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ process_name, file_hash })
+                    body: JSON.stringify({ process_name, file_hash: null })
                 });
                 const data = await res.json();
                 if (res.ok) {
                     document.getElementById('app-process-input').value = "";
-                    document.getElementById('app-hash-input').value = "";
                     loadBlockedApps();
                 } else {
                     alert(data.detail || 'Lỗi thêm ứng dụng.');
                 }
             } catch (e) {
-                alert('Lỗi kết nối tới Server.');
+                alert('Lỗi kết nối.');
             }
         });
 
         async function deleteApp(appId) {
-            if (!confirm("Bạn có chắc chắn muốn bỏ chặn ứng dụng này?")) return;
+            if (!confirm("Bỏ chặn ứng dụng này?")) return;
             try {
                 const res = await fetch(`/api/apps/${appId}`, { method: 'DELETE' });
                 if (res.ok) {
                     loadBlockedApps();
-                } else {
-                    alert('Lỗi khi xóa ứng dụng.');
                 }
             } catch (e) {
-                alert('Lỗi kết nối tới Server.');
+                alert('Lỗi kết nối.');
             }
         }
 
@@ -685,13 +907,10 @@
             resultBox.classList.add('hidden');
 
             if (!childUsername) {
-                alertBox.textContent = 'Vui lòng nhập tên đăng nhập của trẻ!';
+                alertBox.textContent = 'Vui lòng nhập tên tài khoản của con!';
                 alertBox.classList.remove('hidden');
                 return;
             }
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const parentUsername = urlParams.get('username') || localStorage.getItem('ogk_username') || 'parent_admin';
 
             try {
                 const res = await fetch('/auth/generate-code', {
@@ -699,21 +918,21 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         child_username: childUsername,
-                        parent_username: parentUsername
+                        parent_username: currentParentUser
                     })
                 });
                 const data = await res.json();
                 if (res.ok) {
                     document.getElementById('generated-code').textContent = data.enroll_code;
-                    document.getElementById('paired-child-display').textContent = `${data.child_name} (${data.child_username})`;
+                    document.getElementById('paired-child-display').textContent = `${data.child_name || data.child_username}`;
                     resultBox.classList.remove('hidden');
                 } else {
-                    alertBox.textContent = data.detail || 'Không tìm thấy tên đăng nhập tài khoản của trẻ!';
+                    alertBox.textContent = data.detail || 'Không tìm thấy tên tài khoản này của con!';
                     alertBox.classList.remove('hidden');
                 }
             } catch (err) {
-                alertBox.textContent = 'Lỗi kết nối tới Server!';
-                alertBox.classList.add('hidden');
+                alertBox.textContent = 'Lỗi kết nối máy chủ!';
+                alertBox.classList.remove('hidden');
             }
         }
 
@@ -748,24 +967,29 @@
                 const response = await fetch('/api/policy/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ quota_weekday, quota_weekend, schedule_json })
+                    body: JSON.stringify({ 
+                        quota_weekday, 
+                        quota_weekend, 
+                        schedule_json,
+                        actor_username: currentParentUser
+                    })
                 });
 
                 const data = await response.json();
                 if (response.ok) {
-                    toast.className = 'p-4 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 text-sm font-medium';
-                    toast.textContent = `[Thành công] ${data.message} - Đã cập nhật chính sách và ngân sách ứng dụng độc lập!`;
+                    toast.className = 'p-4 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 text-sm font-semibold';
+                    toast.textContent = `✓ Đã lưu cài đặt thành công! Máy tính của con sẽ áp dụng ngay.`;
                     toast.classList.remove('hidden');
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
                     toast.className = 'p-4 rounded-xl border bg-red-500/10 border-red-500/30 text-red-400 text-sm font-medium';
-                    toast.textContent = data.detail || 'Lỗi cập nhật chính sách';
+                    toast.textContent = data.detail || 'Lỗi lưu cài đặt.';
                     toast.classList.remove('hidden');
                 }
             } catch (err) {
                 toast.className = 'p-4 rounded-xl border bg-red-500/10 border-red-500/30 text-red-400 text-sm font-medium';
-                toast.textContent = 'Lỗi kết nối tới Server.';
-                toast.classList.add('hidden');
+                toast.textContent = 'Lỗi kết nối tới máy chủ.';
+                toast.classList.remove('hidden');
             }
         });
     </script>

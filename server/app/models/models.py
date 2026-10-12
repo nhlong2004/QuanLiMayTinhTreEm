@@ -20,6 +20,8 @@ class Device(Base):
     id = Column(String(36), primary_key=True)  # UUID
     device_name = Column(String(100), nullable=False)
     child_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    child_name = Column(String(100), nullable=True)
+    parent_username = Column(String(50), nullable=True)
     policy_version = Column(Integer, default=1)
     last_seen = Column(DateTime, default=datetime.datetime.utcnow)
     status = Column(String(20), default="offline")
@@ -30,12 +32,21 @@ class Policy(Base):
     __tablename__ = "policies"
     id = Column(Integer, primary_key=True, autoincrement=True)
     version = Column(Integer, unique=True, nullable=False)
+    parent_username = Column(String(50), nullable=True) # Chính sách của phụ huynh nào (F4: 1 parent : n kid)
     quota_weekday = Column(Integer, default=90)  # Phút mặc định ngày thường
     quota_weekend = Column(Integer, default=120) # Phút mặc định cuối tuần
-    # Ma trận lịch tuần 7x48 (7 ngày x 48 block 30 phút), lưu dưới dạng chuỗi JSON ma trận hoặc chuỗi bit
+    # Ma trận lịch tuần 7x48 (7 ngày x 48 block 30 phút), lưu dưới dạng chuỗi JSON ma trận hoặc cấu trúc lịch
     schedule_matrix_json = Column(Text, nullable=False) 
     hmac_signature = Column(String(64), nullable=False) # Chữ ký toàn vẹn chính sách (F4)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    @property
+    def schedule_json(self):
+        return self.schedule_matrix_json
+
+    @schedule_json.setter
+    def schedule_json(self, value):
+        self.schedule_matrix_json = value
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
@@ -52,16 +63,19 @@ class EnrollCode(Base):
     __tablename__ = "enroll_codes"
     id = Column(Integer, primary_key=True, autoincrement=True)
     code = Column(String(10), unique=True, index=True, nullable=False)
-    child_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    child_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    child_username = Column(String(50), nullable=True)
+    parent_username = Column(String(50), nullable=True)
     is_used = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     expires_at = Column(DateTime, nullable=False)
+
 class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, autoincrement=True)
     ts = Column(DateTime, default=datetime.datetime.utcnow, index=True)
     device_id = Column(String(36), ForeignKey("devices.id"), nullable=False)
-    child_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    child_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     type = Column(String(50), nullable=False) # app_start, app_stop, blocked_app, quota_warning, locked, unlock_request...
     subject = Column(String(255), nullable=True)
     duration_sec = Column(Integer, default=0)
@@ -82,7 +96,8 @@ class BlockedDomain(Base):
 class ChildRequest(Base):
     __tablename__ = "child_requests"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    child_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    child_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    device_id = Column(String(36), ForeignKey("devices.id"), nullable=True)
     request_type = Column(String(50), nullable=False) # "extra_time", "unblock_app"
     content = Column(String(255), nullable=False)
     status = Column(String(20), default="pending") # pending, approved, rejected

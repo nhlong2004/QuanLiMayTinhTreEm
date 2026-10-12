@@ -41,38 +41,41 @@ Bảng dưới đây chi tiết hóa toàn bộ thông tin dữ liệu trong h�
 
 | Nhóm dữ liệu | Trường dữ liệu cụ thể | Mục đích thu thập | Thời hạn lưu trữ | Người có quyền xem | Ánh xạ Mã nguồn & Cơ sở dữ liệu |
 |:---|:---|:---|:---|:---|:---|
-| **Định danh thiết bị & Trẻ em** | `device_id` (UUIDv4) | Định danh duy nhất máy tính trong hệ thống | Trọn đời ứng dụng (cho đến khi Hủy ghép đôi) | Phụ huynh, Hệ thống Agent | `server/models.py` (`DeviceModel.device_id`)<br>`agent/config.json` (`device_id`) |
-| | `device_name` | Nhận biết máy tính (vd: PC Phòng Khách) | Trọn đời ứng dụng | Phụ huynh | `server/models.py` (`DeviceModel.device_name`)<br>`server/schemas.py` (`EnrollRequest`) |
-| | `child_name` | Cá nhân hóa chính sách bảo vệ cho bé | Trọn đời ứng dụng | Phụ huynh | `server/models.py` (`DeviceModel.child_name`) |
-| | `device_fingerprint` | Xác thực môi trường OS ban đầu (Phase 1) | Lưu tạm khi Ghép đôi | Phụ huynh, Hệ thống Server | `agent/main_agent.py` (`enroll_device`) |
-| **Trạng thái & Giám sát** | `last_seen` (Timestamp) | Xác định máy tính đang Online hay Offline | Cập nhật đè (Chỉ giữ mốc mới nhất) | Phụ huynh | `server/models.py` (`DeviceModel.last_seen`)<br>`server/main.py` (`receive_heartbeat`) |
-| | `status` | Hiển thị cảnh báo kết nối trên Dashboard | Cập nhật đè (Online/Offline) | Phụ huynh | `server/models.py` (`DeviceModel.status`) |
-| | `policy_version` | Đồng bộ quy tắc bảo vệ mới nhất giữa Server và Agent | Trọn đời ứng dụng | Phụ huynh, Agent | `server/models.py` (`DeviceModel.policy_version`)<br>`server/models.py` (`PolicyModel.version`) |
-| **Nhật ký Sự kiện (Events)** | `event_type` (DNS_BLOCK, APP_BLOCK...) | Báo cáo các hành vi vi phạm chính sách bảo vệ | 30 ngày (Tự động xoay vòng/xóa) | Phụ huynh | `server/models.py` (`EventModel.event_type`) |
-| | `subject` (Domain/Tên ứng dụng) | Giúp phụ huynh biết trang web/ứng dụng nguy hại bị chặn | 30 ngày | Phụ huynh | `server/models.py` (`EventModel.subject`) |
-| | `timestamp` | Ghi nhận thời điểm xảy ra sự kiện | 30 ngày | Phụ huynh | `server/models.py` (`EventModel.timestamp`) |
-| **Xác thực & Cấu hình** | `enroll_code` | Mã xác thực 8 ký tự để ghép đôi an toàn | Tối đa 10 phút (Xóa ngay sau khi dùng) | Phụ huynh | `server/main.py` (`enroll_device`) |
-| | `access_token` | Xác thực API giữa Agent và Server | Thay đổi khi ghép đôi lại | Agent (Lưu cục bộ) | `agent/config.json` (`access_token`) |
+| **Định danh thiết bị & Trẻ em** | `device_id` (UUIDv4) | Định danh duy nhất máy tính trong hệ thống | Trọn đời ứng dụng (cho đến khi Hủy ghép đôi) | Phụ huynh, Hệ thống Agent | `server/app/models/models.py` (`Device.id`)<br>`agent/config.json` (`device_id`) |
+| | `device_name` | Nhận biết máy tính (vd: Laptop Bé An) | Trọn đời ứng dụng | Phụ huynh | `server/app/models/models.py` (`Device.device_name`) |
+| | `child_name` / `child_id` | Cá nhân hóa chính sách bảo vệ cho trẻ | Trọn đời ứng dụng | Phụ huynh, Trẻ em (màn hình minh bạch) | `server/app/models/models.py` (`Device.child_id`) |
+| | `device_fingerprint` | Xác thực môi trường OS ban đầu (NĐ 13/2023) | Lưu tạm khi Ghép đôi | Phụ huynh, Hệ thống Server | `agent/core/sync.py` (`get_device_fingerprint`) |
+| **Trạng thái & Giám sát** | `last_seen` (Timestamp) | Xác định máy tính đang Online hay Offline | Cập nhật đè (Chỉ giữ mốc mới nhất) | Phụ huynh | `server/app/models/models.py` (`Device.last_seen`) |
+| | `status` | Hiển thị cảnh báo kết nối trên Dashboard | Cập nhật đè (online/offline) | Phụ huynh | `server/app/models/models.py` (`Device.status`) |
+| | `policy_version` | Đồng bộ quy tắc bảo vệ mới nhất giữa Server và Agent | Trọn đời ứng dụng | Phụ huynh, Agent | `server/app/models/models.py` (`Device.policy_version`) |
+| **Nhật ký Sự kiện (Events - Lược đồ F3)** | `ts` (Timestamp UTC) | Ghi nhận thời điểm xảy ra sự kiện | Tối đa 90 ngày (Nghị định 13/2023) | Phụ huynh, Trẻ em | `server/app/models/models.py` (`Event.ts`) |
+| | `type` (app_start, blocked_domain...) | Phân loại hành vi giám sát và bảo vệ | Tối đa 90 ngày | Phụ huynh, Trẻ em | `server/app/models/models.py` (`Event.type`) |
+| | `subject` (Tên miền cấp hai / Tên file exe) | Nhận diện ứng dụng hoặc website liên quan | Tối đa 90 ngày | Phụ huynh, Trẻ em | `server/app/models/models.py` (`Event.subject`) |
+| | `duration_sec` | Thống kê tổng thời lượng sử dụng máy tính | Tối đa 90 ngày | Phụ huynh, Trẻ em | `server/app/models/models.py` (`Event.duration_sec`) |
+| | `policy_id` | Ánh xạ phiên bản chính sách đang áp dụng | Tối đa 90 ngày | Phụ huynh, Hệ thống | `server/app/models/models.py` (`Event.policy_id`) |
+| **Xác thực & Cấu hình** | `enroll_code` | Mã xác thực 8 ký tự để ghép đôi an toàn | Tối đa 10 phút (Hết hạn hoặc xóa sau khi dùng) | Phụ huynh | `server/app/models/models.py` (`EnrollCode`) |
+| | `access_token` / `refresh_token` | Xác thực API giữa Agent và Server (15p + dài hạn) | Thu hồi khi hủy thiết bị | Agent (Lưu cục bộ) | `agent/config.json` (`access_token`) |
 
 ---
 
 ## IV. BIỆN PHÁP BẢO MẬT VÀ QUY TRÌNH QUẢN LÝ DỮ LIỆU
 
 1. **Bảo mật khi truyền tải (Data in Transit):**
-   - Mọi giao tiếp giữa Agent và Server được thực hiện qua giao thức HTTPS (TLS 1.3 trong môi trường sản xuất).
+   - Mọi giao tiếp giữa Agent và Server được thực hiện qua giao thức HTTPS (TLS 1.2+).
    - Mã ghép đôi `enroll_code` có thời hạn 10 phút nhằm ngăn chặn tấn công giả mạo thiết bị theo tiêu chuẩn NIST SP 800-63B.
 
 2. **Bảo mật khi lưu trữ (Data at Rest):**
-   - Cơ sở dữ liệu SQLite (`ogk_server.db`) được đặt tại máy chủ riêng của phụ huynh (Self-hosted), không chia sẻ lên đám mây của bên thứ ba.
-   - Tệp cấu hình Agent (`config.json`) lưu trữ tại thư mục bảo vệ của hệ điều hành.
+   - Cơ sở dữ liệu SQLite (`ogk_server.db`) được đặt tại máy chủ riêng của phụ huynh (Self-hosted), hỗ trợ WAL mode.
+   - Trường nhạy cảm mã hóa AES-GCM; khóa bảo mật lấy từ biến môi trường.
+   - Thư mục cấu hình và bộ đệm của Agent đặt quyền ACL chỉ `SYSTEM` và `Administrators` được ghi.
 
-3. **Tối thiểu hóa dữ liệu (Data Minimization - Nghị định 13/2023/NĐ-CP):**
-   - Hệ thống **KHÔNG** ghi lại thao tác bàn phím (Keylogger), **KHÔNG** chụp màn hình khi không có cảnh báo, **KHÔNG** theo dõi nội dung trò chuyện riêng tư của trẻ.
-   - Chỉ thu thập các metadata cần thiết cho chức năng bảo vệ (tên miền bị chặn, trạng thái kết nối).
+3. **Tối thiểu hóa dữ liệu (Data Minimization - Nghị định 13/2023/NĐ-CP & NT2):**
+   - Hệ thống **KHÔNG** ghi lại thao tác bàn phím (Keylogger), **KHÔNG** chụp màn hình, **KHÔNG** đọc tin nhắn / tài liệu cá nhân, **KHÔNG** lưu URL đầy đủ hay tiêu đề cửa sổ.
+   - Trường `subject` chỉ lưu tên miền cấp hai hoặc tên tiến trình thực thi (.exe).
 
-4. **Hủy và xóa dữ liệu (Data Retention & Deletion):**
-   - Khi phụ huynh thực hiện "Hủy ghép đôi thiết bị", toàn bộ dữ liệu liên quan (`DeviceModel`, `EventModel`) sẽ bị xóa vĩnh viễn khỏi cơ sở dữ liệu.
-   - Nhật ký sự kiện (`events`) tự động xóa sau 30 ngày để đảm bảo quyền riêng tư của trẻ.
+4. **Hủy và xóa dữ liệu (Data Retention & Deletion - F3 & NĐ 13/2023):**
+   - Thời hạn lưu trữ sự kiện tối đa là **90 ngày**, hệ thống có tác vụ tự động dọn dẹp các bản ghi quá hạn.
+   - Cung cấp nút **"Xóa toàn bộ dữ liệu của con tôi"**: Khi phụ huynh kích hoạt, server sẽ xóa toàn bộ dữ liệu sự kiện trên cơ sở dữ liệu đồng thời phát lệnh WebSocket yêu cầu Agent dọn sạch toàn bộ bộ đệm sự kiện ngoại tuyến cục bộ (`agent_events.db`).
 
 ---
 

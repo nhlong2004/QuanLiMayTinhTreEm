@@ -6,89 +6,127 @@
     <title>OpenGuardKids - Quản Lý Dành Cho Cha Mẹ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Edu+QLD+Hand:wght@400..700&family=Itim&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        :root {
+            --title-color: #faebd7;
+            --accent-pink: #ffe4e1;
+            --accent-orange: #ff9f43;
+            --accent-green: #2ecc71;
+            --text-color: #fffaf0;
+            --text-muted: #cbd5e1;
+            --border-glass: rgba(255, 228, 225, 0.22);
+            --border-sub: rgba(255, 255, 255, 0.15);
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body { 
+            font-family: 'Itim', cursive, sans-serif; 
+            color: var(--text-color);
+            background-image: url("/static/images/pic4.jpg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .font-brand { font-family: 'Amatic SC', cursive; letter-spacing: 1px; }
         .sidebar-btn.active {
-            background: linear-gradient(90deg, rgba(37, 99, 235, 0.2) 0%, rgba(30, 58, 138, 0.08) 100%);
-            color: #60a5fa;
-            border-left: 4px solid #3b82f6;
+            background: linear-gradient(90deg, rgba(255, 159, 67, 0.28) 0%, rgba(255, 107, 129, 0.20) 100%);
+            color: #ffd8a8;
+            border-left: 4px solid #ff9f43;
             font-weight: 600;
         }
         .sidebar-btn:not(.active) {
             border-left: 4px solid transparent;
-            color: #94a3b8;
+            color: #cbd5e1;
         }
         .sidebar-btn:not(.active):hover {
-            background-color: rgba(51, 65, 85, 0.3);
-            color: #f1f5f9;
+            background-color: rgba(255, 255, 255, 0.12);
+            color: #fff;
         }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0b1120; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.35); }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+<body class="selection:bg-amber-500 selection:text-white">
+    <div class="backdrop"></div>
 
-    <!-- 1. HEADER Ở TRÊN CÙNG -->
-    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 h-16 flex-none">
-        <div class="h-full px-4 sm:px-6 flex items-center justify-between">
-            <!-- Logo & Tên ứng dụng -->
-            <div class="flex items-center space-x-3">
-                <img src="/static/images/shield_logo.svg" alt="OpenGuardKids" class="w-8 h-8 drop-shadow">
-                <h1 class="font-extrabold text-white text-base tracking-tight">OpenGuardKids</h1>
+    <!-- 1. HEADER Ở TRÊN CÙNG: CHẠM LỀ TRÊN, TRÁI, PHẢI (CAO 56PX) -->
+    <header class="relative z-10 w-full h-14 bg-black/65 backdrop-blur-md border-b border-[rgba(255,228,225,0.22)] px-6 shadow-[0_4px_16px_rgba(0,0,0,0.4)] flex-none flex items-center justify-between">
+        <!-- Logo & Tên ứng dụng -->
+        <div class="flex items-center space-x-3">
+            <img src="/static/images/shield_logo.svg" alt="OpenGuardKids" class="w-8 h-8 drop-shadow" onerror="this.src='/static/images/pic5.jpg'">
+            <h1 class="font-brand font-bold text-[#faebd7] text-2xl sm:text-3xl tracking-wide">OpenGuardKids - Parent Dashboard</h1>
+        </div>
+
+        <!-- Tài khoản & Thao tác nhanh -->
+        <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-1.5 px-3 py-1 bg-white/10 rounded-lg border border-white/15">
+                <span class="text-xs">👤</span>
+                <span class="text-xs font-bold text-amber-300" id="user-display">{{ parent_username }}</span>
             </div>
 
-            <!-- Tài khoản & Thao tác nhanh -->
-            <div class="flex items-center space-x-3">
-                <div class="text-right">
-                    <span class="text-xs text-slate-400 block sm:inline">Tài khoản:</span>
-                    <span class="text-xs font-bold text-blue-400" id="user-display">{{ parent_username }}</span>
-                </div>
+            <button onclick="openPairingModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-medium rounded-lg text-xs sm:text-sm transition shadow flex items-center space-x-1.5">
+                <span>+ Kết Nối Máy Con</span>
+            </button>
 
-                <button onclick="openPairingModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl text-xs sm:text-sm transition shadow flex items-center space-x-1.5">
-                    <span>+ Kết Nối Máy Của Con</span>
-                </button>
-
-                <button onclick="logout()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 rounded-xl text-xs transition">
-                    Đăng xuất
-                </button>
-            </div>
+            <button onclick="logout()" class="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-[#ffe4e1] hover:text-white border border-[rgba(255,228,225,0.22)] rounded-md text-xs transition">
+                Đăng xuất
+            </button>
         </div>
     </header>
 
-    <!-- 2. THÂN CHÍNH: SIDEBAR (TRÁI) & CONTENT (PHẢI) -->
-    <div class="flex flex-1 overflow-hidden">
+    <!-- 2. THÂN CHÍNH: SIDEBAR CHẠM TRÁI, CONTENT CHẠM PHẢI, KHOẢNG CÁCH 14PX ĐỒNG ĐỀU, SCROLL TOÀN TRANG -->
+    <div class="relative z-10 flex-1 w-full flex my-3.5 gap-3.5 items-stretch">
         
-        <!-- SIDEBAR BÊN TRÁI -->
-        <aside class="w-60 sm:w-64 bg-slate-900/70 border-r border-slate-800/80 flex flex-col justify-between flex-none p-3 space-y-4">
-            <div class="space-y-1.5">
-                <p class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Chức năng</p>
+        <!-- SIDEBAR BÊN TRÁI: CHẠM LỀ TRÁI (ml-0), CHIỀU CAO ĐỒNG BỘ VỚI CONTENT -->
+        <aside class="w-64 sm:w-72 min-h-[580px] bg-black/65 backdrop-blur-md border-r border-y border-[rgba(255,228,225,0.22)] rounded-r-xl flex flex-col justify-between flex-none p-4 space-y-4 shadow-[0_4px_16px_rgba(0,0,0,0.4)]">
+            <div class="space-y-2">
+                <!-- TĂNG CỠ CHỮ LÊN ~2.5 LẦN (28px) VỪA KHÍT SIDEBAR -->
+                <p class="px-2 py-1 font-bold font-brand text-amber-200 tracking-wider text-[28px] leading-tight whitespace-nowrap">CHỨC NĂNG QUẢN LÝ</p>
                 
-                <button onclick="switchTab('overview')" id="tab-btn-overview" class="sidebar-btn active w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                <button onclick="switchTab('overview')" id="tab-btn-overview" class="sidebar-btn active w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs sm:text-sm transition">
                     <div class="flex items-center space-x-3">
                         <span class="text-base">📊</span>
                         <span>Tổng Quan Hôm Nay</span>
                     </div>
                 </button>
 
-                <button onclick="switchTab('policy')" id="tab-btn-policy" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                <button onclick="switchTab('policy')" id="tab-btn-policy" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs sm:text-sm transition">
                     <div class="flex items-center space-x-3">
                         <span class="text-base">⏰</span>
                         <span>Hạn Mức Giờ Dùng</span>
                     </div>
                 </button>
 
-                <button onclick="switchTab('devices')" id="tab-btn-devices" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                <button onclick="switchTab('devices')" id="tab-btn-devices" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs sm:text-sm transition">
                     <div class="flex items-center space-x-3">
                         <span class="text-base">💻</span>
                         <span>Máy Tính Của Con</span>
                     </div>
-                    <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-800 text-slate-300 rounded-full">{{ devices|length }}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 bg-white/10 text-slate-200 rounded-full">{{ devices|length }}</span>
                 </button>
 
-                <button onclick="switchTab('requests')" id="tab-btn-requests" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                <button onclick="switchTab('requests')" id="tab-btn-requests" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs sm:text-sm transition">
                     <div class="flex items-center space-x-3">
                         <span class="text-base">🔔</span>
                         <span>Tin Nhắn Từ Con</span>
@@ -96,21 +134,21 @@
                     <span id="requests-badge" class="hidden text-[10px] font-bold px-2 py-0.5 bg-amber-500 text-slate-950 rounded-full">!</span>
                 </button>
 
-                <button onclick="switchTab('domains')" id="tab-btn-domains" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                <button onclick="switchTab('domains')" id="tab-btn-domains" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs sm:text-sm transition">
                     <div class="flex items-center space-x-3">
                         <span class="text-base">🌐</span>
                         <span>Chặn Trang Web</span>
                     </div>
                 </button>
 
-                <button onclick="switchTab('apps')" id="tab-btn-apps" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                <button onclick="switchTab('apps')" id="tab-btn-apps" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs sm:text-sm transition">
                     <div class="flex items-center space-x-3">
                         <span class="text-base">🛡️</span>
                         <span>Chặn Game & App</span>
                     </div>
                 </button>
 
-                <button onclick="switchTab('privacy')" id="tab-btn-privacy" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition">
+                <button onclick="switchTab('privacy')" id="tab-btn-privacy" class="sidebar-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs sm:text-sm transition">
                     <div class="flex items-center space-x-3">
                         <span class="text-base">🔒</span>
                         <span>Lịch Sử & Bảo Mật</span>
@@ -119,55 +157,55 @@
             </div>
         </aside>
 
-        <!-- CONTENT BÊN PHẢI -->
-        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl">
+        <!-- CONTENT BÊN PHẢI: CHẠM LỀ PHẢI (mr-0), CHIỀU CAO ĐỒNG BỘ VỚI SIDEBAR -->
+        <main class="flex-1 min-h-[580px] p-5 sm:p-6 lg:p-7 space-y-5 bg-black/65 backdrop-blur-md border-l border-y border-[rgba(255,228,225,0.22)] rounded-l-xl shadow-[0_4px_16px_rgba(0,0,0,0.4)]">
             <div id="status-toast" class="hidden p-4 rounded-xl border text-sm font-medium transition shadow-lg"></div>
 
             <!-- TAB 1: TỔNG QUAN HÔM NAY -->
-            <section id="section-overview" class="space-y-6">
+            <section id="section-overview" class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-bold text-white tracking-tight">📊 Tình Hình Sử Dụng Máy Tính Của Con</h2>
-                    <button onclick="loadReportsSummary()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs rounded-xl border border-slate-700 transition">
+                    <h2 class="text-lg font-bold text-white tracking-tight">📊 Tình Hình Sử Dụng Máy Tính Của Con</h2>
+                    <button onclick="loadReportsSummary()" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-xs rounded-lg border border-white/15 text-slate-200 transition">
                         🔄 Làm mới
                     </button>
                 </div>
 
-                <!-- 3 Thẻ thống kê chính -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
-                        <span class="text-xs text-slate-400 block mb-1">Thời gian con dùng</span>
-                        <span id="stat-total-hours" class="text-3xl font-extrabold text-emerald-400 font-mono">0h</span>
+                <!-- 3 Thẻ thống kê chính (kính mờ xám nhạt) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-center">
+                    <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 shadow-sm">
+                        <span class="text-xs text-slate-300 block mb-1">Thời gian con dùng</span>
+                        <span id="stat-total-hours" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono">0h</span>
                     </div>
-                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
-                        <span class="text-xs text-slate-400 block mb-1">Ứng dụng bị chặn</span>
-                        <span id="stat-blocked-apps" class="text-3xl font-extrabold text-amber-400 font-mono">0</span>
+                    <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 shadow-sm">
+                        <span class="text-xs text-slate-300 block mb-1">Ứng dụng bị chặn</span>
+                        <span id="stat-blocked-apps" class="text-2xl sm:text-3xl font-extrabold text-amber-400 font-mono">0</span>
                     </div>
-                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
-                        <span class="text-xs text-slate-400 block mb-1">Trang web bị chặn</span>
-                        <span id="stat-blocked-domains" class="text-3xl font-extrabold text-red-400 font-mono">0</span>
+                    <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 shadow-sm">
+                        <span class="text-xs text-slate-300 block mb-1">Trang web bị chặn</span>
+                        <span id="stat-blocked-domains" class="text-2xl sm:text-3xl font-extrabold text-red-400 font-mono">0</span>
                     </div>
                 </div>
 
-                <!-- Biểu đồ thời lượng 7 ngày gần nhất -->
-                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
-                    <span class="text-sm font-semibold text-slate-200">Biểu đồ thời gian dùng máy (7 ngày qua)</span>
-                    <div class="w-full h-56">
+                <!-- Biểu đồ thời lượng 7 ngày gần nhất (kính mờ xám nhạt) -->
+                <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 space-y-2 shadow-sm">
+                    <span class="text-xs font-semibold text-slate-200">Biểu đồ thời gian dùng máy (7 ngày qua)</span>
+                    <div class="w-full h-44 sm:h-48">
                         <canvas id="usageChart"></canvas>
                     </div>
                 </div>
 
                 <!-- Danh sách Ứng dụng & Trang web mở nhiều nhất -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
-                        <h3 class="text-sm font-semibold text-slate-200">Ứng dụng con mở nhiều nhất</h3>
-                        <div id="top-apps-list" class="divide-y divide-slate-800 max-h-56 overflow-y-auto text-xs">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                    <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 space-y-2 shadow-sm">
+                        <h3 class="text-xs font-semibold text-slate-200">Ứng dụng con mở nhiều nhất</h3>
+                        <div id="top-apps-list" class="divide-y divide-white/10 max-h-40 overflow-y-auto text-xs">
                             <div class="p-3 text-center text-slate-400">Chưa có dữ liệu.</div>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
-                        <h3 class="text-sm font-semibold text-slate-200">Trang web con xem nhiều nhất</h3>
-                        <div id="top-domains-list" class="divide-y divide-slate-800 max-h-56 overflow-y-auto text-xs">
+                    <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 space-y-2 shadow-sm">
+                        <h3 class="text-xs font-semibold text-slate-200">Trang web con xem nhiều nhất</h3>
+                        <div id="top-domains-list" class="divide-y divide-white/10 max-h-40 overflow-y-auto text-xs">
                             <div class="p-3 text-center text-slate-400">Chưa có dữ liệu.</div>
                         </div>
                     </div>
@@ -175,147 +213,149 @@
             </section>
 
             <!-- TAB 2: HẠN MỨC GIỜ DÙNG -->
-            <section id="section-policy" class="hidden space-y-6">
-                <h2 class="text-xl font-bold text-white tracking-tight">⏰ Cài Đặt Hạn Mức Giờ Dùng</h2>
+            <section id="section-policy" class="hidden space-y-4">
+                <h2 class="text-lg font-bold text-white tracking-tight">⏰ Cài Đặt Hạn Mức Giờ Dùng</h2>
 
-                <form id="policy-form" class="space-y-6">
+                <form id="policy-form" class="space-y-4">
                     <!-- Thời gian Ngày thường & Cuối tuần -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
-                            <label class="block text-xs font-semibold text-slate-300 mb-2">Thứ Hai - Thứ Sáu (Phút/ngày):</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 shadow-sm">
+                            <label class="block text-xs font-semibold text-slate-200 mb-2">Thứ Hai - Thứ Sáu (Phút/ngày):</label>
                             <input type="number" id="quota_weekday" value="{{ latest_policy.quota_weekday if latest_policy else 90 }}" min="1" required
-                                class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                                class="w-full px-3.5 py-2 bg-white/10 border border-white/20 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-400">
                         </div>
-                        <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
-                            <label class="block text-xs font-semibold text-slate-300 mb-2">Thứ Bảy & Chủ Nhật (Phút/ngày):</label>
+                        <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 shadow-sm">
+                            <label class="block text-xs font-semibold text-slate-200 mb-2">Thứ Bảy & Chủ Nhật (Phút/ngày):</label>
                             <input type="number" id="quota_weekend" value="{{ latest_policy.quota_weekend if latest_policy else 120 }}" min="1" required
-                                class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                                class="w-full px-3.5 py-2 bg-white/10 border border-white/20 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-400">
                         </div>
                     </div>
 
                     <!-- Khung giờ cấm / đi ngủ -->
-                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-4">
+                    <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 space-y-3 shadow-sm">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-semibold text-slate-200">🌙 Giờ Đi Ngủ & Giờ Nghỉ (Máy tự khóa)</span>
-                            <button type="button" onclick="addBlockWindow()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition">
+                            <span class="text-xs font-semibold text-slate-200">🌙 Giờ Đi Ngủ & Giờ Nghỉ (Máy tự khóa)</span>
+                            <button type="button" onclick="addBlockWindow()" class="px-2.5 py-1 bg-amber-600/80 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg transition">
                                 + Thêm giờ nghỉ
                             </button>
                         </div>
                         
-                        <div id="block-windows-container" class="space-y-3">
-                            <div class="flex items-center gap-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+                        <div id="block-windows-container" class="space-y-2.5">
+                            <div class="flex items-center gap-3 bg-white/[0.05] p-3 rounded-lg border border-white/10">
                                 <div class="flex-1">
-                                    <label class="block text-[11px] text-slate-400 mb-1">Bắt đầu khóa máy:</label>
-                                    <input type="time" class="block-start w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="22:00" required>
+                                    <label class="block text-[11px] text-slate-300 mb-1">Bắt đầu khóa máy:</label>
+                                    <input type="time" class="block-start w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-lg text-amber-300 font-mono text-sm focus:outline-none focus:border-amber-400" value="22:00" required>
                                 </div>
                                 <div class="flex-1">
-                                    <label class="block text-[11px] text-slate-400 mb-1">Mở khóa lại lúc:</label>
-                                    <input type="time" class="block-end w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="06:00" required>
+                                    <label class="block text-[11px] text-slate-300 mb-1">Mở khóa lại lúc:</label>
+                                    <input type="time" class="block-end w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-lg text-amber-300 font-mono text-sm focus:outline-none focus:border-amber-400" value="06:00" required>
                                 </div>
-                                <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 mt-5 px-2 font-bold transition">✕</button>
+                                <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 mt-4 px-2 font-bold transition">✕</button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Giới hạn riêng cho Game / Giải trí -->
-                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
-                        <span class="text-sm font-semibold text-slate-200">🎮 Giới Hạn Riêng Cho Game & Giải Trí</span>
+                    <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 space-y-3 shadow-sm">
+                        <span class="text-xs font-semibold text-slate-200">🎮 Giới Hạn Riêng Cho Game & Giải Trí</span>
                         
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800">
-                                <label class="block text-xs text-slate-400 mb-1">Ứng dụng học tập (Phút/ngày):</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div class="bg-white/[0.05] p-3 rounded-lg border border-white/10">
+                                <label class="block text-xs text-slate-300 mb-1">Ứng dụng học tập (Phút/ngày):</label>
                                 <input type="number" id="quota_study" value="-1" required
-                                    class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-emerald-400 font-mono text-sm focus:outline-none focus:border-blue-500">
+                                    class="w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-lg text-emerald-400 font-mono text-sm focus:outline-none focus:border-emerald-400">
                             </div>
-                            <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800">
-                                <label class="block text-xs text-slate-400 mb-1">Trò chơi & Giải trí (Phút/ngày):</label>
+                            <div class="bg-white/[0.05] p-3 rounded-lg border border-white/10">
+                                <label class="block text-xs text-slate-300 mb-1">Trò chơi & Giải trí (Phút/ngày):</label>
                                 <input type="number" id="quota_games" value="45" min="0" required
-                                    class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500">
+                                    class="w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-amber-400">
                             </div>
                         </div>
                     </div>
 
                     <button type="submit"
-                        class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg shadow-blue-600/25">
+                        class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 active:scale-[0.99] text-white font-bold rounded-xl transition shadow-lg">
                         💾 Lưu Cài Đặt
                     </button>
                 </form>
             </section>
 
             <!-- TAB 3: MÁY TÍNH CỦA CON -->
-            <section id="section-devices" class="hidden space-y-6">
+            <section id="section-devices" class="hidden space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-bold text-white tracking-tight">💻 Máy Tính Của Con</h2>
-                    <button onclick="openPairingModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition shadow">
+                    <h2 class="text-lg font-bold text-white tracking-tight">💻 Máy Tính Của Con</h2>
+                    <button onclick="openPairingModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition shadow">
                         + Kết Nối Máy Mới
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     {% if devices %}
                         {% for device in devices %}
-                        <div class="p-5 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
+                        <div class="p-4 bg-white/[0.08] backdrop-blur-sm border border-white/15 rounded-xl space-y-3 shadow-sm">
                             <div class="flex items-start justify-between">
                                 <div>
-                                    <h3 class="font-bold text-white text-base">💻 {{ device.device_name }}</h3>
-                                    <p class="text-xs text-slate-400 mt-0.5">Máy của: <b class="text-white">{{ device.child_name or 'Chưa gán bé' }}</b></p>
+                                    <h3 class="font-bold text-white text-sm sm:text-base">💻 {{ device.device_name }}</h3>
+                                    <p class="text-xs text-slate-300 mt-0.5">Máy của: <b class="text-amber-200">{{ device.child_name or 'Chưa gán bé' }}</b></p>
                                 </div>
                                 <div>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' if device.status == 'online' else 'bg-slate-700/30 text-slate-400 border border-slate-700/50' }}">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold {{ 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' if device.status == 'online' else 'bg-white/10 text-slate-300 border border-white/20' }}">
                                         {{ 'Đang bật' if device.status == 'online' else 'Đang tắt' }}
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Bộ 3 Nút Bấm Nhanh Cho Cha Mẹ -->
-                            <div class="pt-2 border-t border-slate-800 flex items-center gap-2">
-                                <button onclick="sendEmergencyCommand('{{ device.id }}', 'lock_now')" class="flex-1 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 rounded-xl text-xs font-semibold transition" title="Khóa máy con ngay lập tức">
-                                    🔒 Khóa máy ngay
+                            <div class="pt-2 border-t border-white/10 flex items-center gap-2">
+                                <button onclick="sendEmergencyCommand('{{ device.id }}', 'lock_now')" class="flex-1 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 rounded-lg text-xs font-medium transition" title="Khóa máy con ngay lập tức">
+                                    🔒 Khóa máy
                                 </button>
-                                <button onclick="sendEmergencyCommand('{{ device.id }}', 'unlock')" class="flex-1 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-semibold transition" title="Mở khóa máy cho con">
+                                <button onclick="sendEmergencyCommand('{{ device.id }}', 'unlock')" class="flex-1 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 rounded-lg text-xs font-medium transition" title="Mở khóa máy cho con">
                                     🔓 Mở máy
                                 </button>
-                                <button onclick="sendEmergencyCommand('{{ device.id }}', 'add_time', 15)" class="flex-1 py-2 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 rounded-xl text-xs font-semibold transition" title="Thưởng thêm 15 phút">
-                                    ⏰ Cho thêm 15p
+                                <button onclick="sendEmergencyCommand('{{ device.id }}', 'add_time', 15)" class="flex-1 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 rounded-lg text-xs font-medium transition" title="Thưởng thêm 15 phút">
+                                    ⏰ +15p
                                 </button>
                             </div>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <div class="col-span-full text-center py-12 bg-slate-900/40 rounded-2xl border border-dashed border-slate-800 space-y-3">
-                            <p class="text-slate-300 font-medium">Chưa có máy tính nào được kết nối</p>
+                        <div class="col-span-full text-center py-10 bg-white/[0.05] rounded-xl border border-dashed border-white/15 space-y-2">
+                            <p class="text-slate-300 text-sm">Chưa có máy tính nào được kết nối</p>
                         </div>
                     {% endif %}
                 </div>
             </section>
 
-            <!-- TAB 4: TIN NHẮN TỪ CON -->
-            <section id="section-requests" class="hidden space-y-6">
+            <!-- TAB 4: TIN NHẮN TỪ CON (CÓ PHÂN TRANG) -->
+            <section id="section-requests" class="hidden space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-bold text-white tracking-tight">🔔 Lời Nhắn Từ Con</h2>
-                    <button onclick="loadChildRequests()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs rounded-xl border border-slate-700 transition">
+                    <h2 class="text-lg font-bold text-white tracking-tight">🔔 Lời Nhắn Từ Con</h2>
+                    <button onclick="loadChildRequests(1)" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-xs rounded-lg border border-white/15 text-slate-200 transition">
                         🔄 Kiểm tra tin nhắn
                     </button>
                 </div>
 
-                <div id="requests-container" class="space-y-3">
+                <div id="requests-container" class="space-y-2.5">
                     <p class="text-xs text-slate-400 text-center py-8">Đang kiểm tra lời nhắn từ con...</p>
                 </div>
+                <!-- PHÂN TRANG CHO TIN NHẮN TỪ CON -->
+                <div id="requests-pagination"></div>
             </section>
 
-            <!-- TAB 5: CHẶN TRANG WEB -->
-            <section id="section-domains" class="hidden space-y-6">
-                <h2 class="text-xl font-bold text-white tracking-tight">🌐 Chặn Trang Web</h2>
+            <!-- TAB 5: CHẶN TRANG WEB (CÓ PHÂN TRANG) -->
+            <section id="section-domains" class="hidden space-y-4">
+                <h2 class="text-lg font-bold text-white tracking-tight">🌐 Chặn Trang Web</h2>
 
-                <form id="domain-form" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                <form id="domain-form" class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 shadow-sm">
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">Địa chỉ web:</label>
+                        <label class="block text-xs text-slate-300 mb-1">Địa chỉ web:</label>
                         <input type="text" id="domain-input" placeholder="trang-web.com" required
-                            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                            class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white font-mono text-xs sm:text-sm focus:outline-none focus:border-amber-400">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">Thể loại:</label>
-                        <select id="domain-category" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500">
+                        <label class="block text-xs text-slate-300 mb-1">Thể loại:</label>
+                        <select id="domain-category" class="w-full px-3 py-2 bg-slate-900 border border-white/20 rounded-lg text-white text-xs sm:text-sm focus:outline-none focus:border-amber-400">
                             <option value="Mạng xã hội">Mạng xã hội</option>
                             <option value="Trò chơi">Trò chơi</option>
                             <option value="Giải trí">Giải trí</option>
@@ -325,16 +365,16 @@
                         </select>
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-sm transition shadow">
+                        <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-xs sm:text-sm transition shadow">
                             + Chặn Trang Này
                         </button>
                     </div>
                 </form>
 
-                <div class="space-y-3">
+                <div class="space-y-2.5">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-sm font-semibold text-slate-300">Danh Sách Trang Web Đang Chặn</h3>
-                        <select id="filter-category" onchange="loadBlockedDomains()" class="px-3 py-1 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300 focus:outline-none">
+                        <h3 class="text-xs font-semibold text-slate-300">Danh Sách Trang Web Đang Chặn</h3>
+                        <select id="filter-category" onchange="loadBlockedDomains(1)" class="px-2.5 py-1 bg-slate-900 border border-white/20 rounded-lg text-xs text-slate-300 focus:outline-none">
                             <option value="Tất cả">Tất cả thể loại</option>
                             <option value="Mạng xã hội">Mạng xã hội</option>
                             <option value="Trò chơi">Trò chơi</option>
@@ -344,103 +384,104 @@
                             <option value="Chưa phân loại">Khác</option>
                         </select>
                     </div>
-                    <div id="blocked-domains-list" class="divide-y divide-slate-800 bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div id="blocked-domains-list" class="divide-y divide-white/10 bg-white/[0.08] backdrop-blur-sm border border-white/15 rounded-xl overflow-hidden shadow-sm">
                         <div class="p-4 text-center text-xs text-slate-400">Đang tải danh sách...</div>
                     </div>
+                    <!-- PHÂN TRANG CHO DANH SÁCH DOMAIN BỊ CHẶN -->
+                    <div id="domains-pagination"></div>
                 </div>
             </section>
 
-            <!-- TAB 6: CHẶN GAME & ỨNG DỤNG -->
-            <section id="section-apps" class="hidden space-y-6">
-                <h2 class="text-xl font-bold text-white tracking-tight">🛡️ Chặn Game & Ứng Dụng</h2>
+            <!-- TAB 6: CHẶN GAME & ỨNG DỤNG (CÓ PHÂN TRANG) -->
+            <section id="section-apps" class="hidden space-y-4">
+                <h2 class="text-lg font-bold text-white tracking-tight">🛡️ Chặn Game & Ứng Dụng</h2>
 
-                <form id="app-form" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                <form id="app-form" class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 shadow-sm">
                     <div class="sm:col-span-2">
-                        <label class="block text-xs text-slate-400 mb-1">Tên ứng dụng hoặc game:</label>
+                        <label class="block text-xs text-slate-300 mb-1">Tên ứng dụng hoặc game:</label>
                         <input type="text" id="app-process-input" placeholder="roblox.exe" required
-                            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                            class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white font-mono text-xs sm:text-sm focus:outline-none focus:border-amber-400">
                         <input type="hidden" id="app-hash-input" value="">
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-sm transition shadow">
+                        <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-xs sm:text-sm transition shadow">
                             + Chặn Ứng Dụng Này
                         </button>
                     </div>
                 </form>
 
-                <div class="space-y-3">
-                    <h3 class="text-sm font-semibold text-slate-300">Danh Sách Game & Ứng Dụng Đang Chặn</h3>
-                    <div id="blocked-apps-list" class="divide-y divide-slate-800 bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                <div class="space-y-2.5">
+                    <h3 class="text-xs font-semibold text-slate-300">Danh Sách Game & Ứng Dụng Đang Chặn</h3>
+                    <div id="blocked-apps-list" class="divide-y divide-white/10 bg-white/[0.08] backdrop-blur-sm border border-white/15 rounded-xl overflow-hidden shadow-sm">
                         <div class="p-4 text-center text-xs text-slate-400">Đang tải danh sách...</div>
                     </div>
+                    <!-- PHÂN TRANG CHO DANH SÁCH APP BỊ CHẶN -->
+                    <div id="apps-pagination"></div>
                 </div>
             </section>
 
-            <!-- TAB 7: LỊCH SỬ & BẢO MẬT -->
-            <section id="section-privacy" class="hidden space-y-6">
-                <h2 class="text-xl font-bold text-white tracking-tight">🔒 Lịch Sử & Quyền Riêng Tư</h2>
+            <!-- TAB 7: LỊCH SỬ & BẢO MẬT (CÓ PHÂN TRANG) -->
+            <section id="section-privacy" class="hidden space-y-4">
+                <h2 class="text-lg font-bold text-white tracking-tight">🔒 Lịch Sử & Quyền Riêng Tư</h2>
 
                 <!-- Xóa dữ liệu -->
-                <div class="flex items-center justify-between bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                <div class="flex items-center justify-between bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 shadow-sm">
                     <div>
-                        <span class="text-sm font-semibold text-slate-200 block">Xóa lịch sử sử dụng máy tính của con</span>
+                        <span class="text-xs sm:text-sm font-semibold text-slate-200 block">Xóa lịch sử sử dụng máy tính của con</span>
+                        <span class="text-[11px] text-slate-400">Xóa dữ liệu theo quy định Nghị định 13/2023/NĐ-CP</span>
                     </div>
-                    <button onclick="purgeData()" class="px-4 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/40 font-semibold rounded-xl text-xs transition">
+                    <button onclick="purgeData()" class="px-3.5 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/40 font-semibold rounded-lg text-xs transition">
                         Xóa Lịch Sử
                     </button>
                 </div>
 
                 <!-- Nhật ký thao tác -->
-                <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 space-y-3">
-                    <h3 class="text-sm font-semibold text-slate-200">Nhật Ký Cài Đặt Của Bạn</h3>
-                    <div class="divide-y divide-slate-800 max-h-80 overflow-y-auto text-xs">
-                        {% if recent_audits %}
-                            {% for log in recent_audits %}
-                            <div class="py-2.5 flex justify-between items-center">
-                                <div>
-                                    <span class="text-white font-medium">{{ 'Đã cập nhật giờ dùng máy' if 'POLICY' in log.action else ('Đã gửi lệnh khẩn' if 'EMERGENCY' in log.action else log.action) }}</span>
-                                    <span class="text-slate-400 text-[11px] block mt-0.5">{{ log.new_value }}</span>
-                                </div>
-                                <span class="text-slate-400 text-[11px]">{{ log.timestamp.strftime('%H:%M %d/%m/%Y') }}</span>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="py-6 text-center text-slate-400">Chưa có hoạt động nào được ghi nhận.</div>
-                        {% endif %}
+                <div class="bg-white/[0.08] backdrop-blur-sm p-4 rounded-xl border border-white/15 space-y-2.5 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-semibold text-slate-200">Nhật Ký Cài Đặt Của Bạn</h3>
+                        <button onclick="loadParentAuditLogs(1)" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-xs rounded-lg border border-white/15 text-slate-200 transition">
+                            🔄 Làm mới
+                        </button>
                     </div>
+                    <div id="parent-audit-container" class="divide-y divide-white/10 text-xs">
+                        <div class="py-4 text-center text-slate-400">Đang tải nhật ký...</div>
+                    </div>
+                    <!-- PHÂN TRANG CHO NHẬT KÝ THAO TÁC -->
+                    <div id="audit-pagination"></div>
                 </div>
             </section>
 
         </main>
     </div>
 
-    <!-- 3. FOOTER Ở CUỐI TRANG -->
-    <footer class="py-3 border-t border-slate-800/80 bg-slate-900/80 px-4 text-center text-xs text-slate-400 flex-none flex items-center justify-center space-x-1 sm:space-x-2 flex-wrap">
+    <!-- 3. FOOTER Ở CUỐI TRANG: CHẠM LỀ DƯỚI, TRÁI, PHẢI (ĐỘ RỘNG/CAO 56PX BẰNG HEADER) -->
+    <footer class="relative z-10 w-full h-14 bg-black/65 backdrop-blur-md border-t border-[rgba(255,228,225,0.22)] px-6 shadow-[0_-4px_16px_rgba(0,0,0,0.4)] flex-none flex items-center justify-center space-x-2 text-xs text-[#cbd5e1]">
         <span>🌟 2026 – OpenGuardKids</span>
-        <span>📍 Trường Đại học Khoa học Tự Nhiên - VNUHCM</span>
+        <span>📍 HCMUS - VNUHCM</span>
+        <span>|</span>
         <span class="inline-flex items-center space-x-1">
             <span>🔗</span>
-            <a href="https://github.com" target="_blank" class="hover:text-blue-400 hover:underline">GitHub</a>
+            <a href="https://github.com" target="_blank" class="hover:text-amber-300 hover:underline">GitHub</a>
         </span>
         <span>|</span>
         <span class="inline-flex items-center space-x-1">
             <span>📧</span>
-            <a href="mailto:support@openguardkids.vn" class="hover:text-blue-400 hover:underline">Liên hệ</a>
+            <a href="mailto:support@openguardkids.vn" class="hover:text-amber-300 hover:underline">Liên hệ</a>
         </span>
     </footer>
 
-    <!-- MODAL KẾT NỐI MÁY CỦA CON -->
-    <div id="pairing-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+    <!-- MODAL KẾT NỐI MÁY CỦA CON (bo góc 12px) -->
+    <div id="pairing-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-black/85 border border-[rgba(255,228,225,0.22)] rounded-xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
             <button onclick="closePairingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 ✕
             </button>
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center border border-emerald-500/30 text-xl">
+                <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-lg flex items-center justify-center border border-amber-500/30 text-xl">
                     🔗
                 </div>
                 <div>
-                    <h3 class="font-bold text-white text-base">Kết Nối Máy Tính Của Con</h3>
+                    <h3 class="font-bold text-[#faebd7] text-base">Kết Nối Máy Tính Của Con</h3>
                 </div>
             </div>
 
@@ -488,25 +529,26 @@
             });
 
             if (tabKey === 'overview') loadReportsSummary();
-            if (tabKey === 'requests') loadChildRequests();
-            if (tabKey === 'domains') loadBlockedDomains();
-            if (tabKey === 'apps') loadBlockedApps();
+            if (tabKey === 'requests') loadChildRequests(1);
+            if (tabKey === 'domains') loadBlockedDomains(1);
+            if (tabKey === 'apps') loadBlockedApps(1);
+            if (tabKey === 'privacy') loadParentAuditLogs(1);
         }
 
         function addBlockWindow(startTime = "11:00", endTime = "13:00") {
             const container = document.getElementById('block-windows-container');
             const row = document.createElement('div');
-            row.className = "flex items-center gap-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800";
+            row.className = "flex items-center gap-3 bg-white/[0.05] p-3 rounded-lg border border-white/10";
             row.innerHTML = `
                 <div class="flex-1">
-                    <label class="block text-[11px] text-slate-400 mb-1">Bắt đầu khóa máy:</label>
-                    <input type="time" class="block-start w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="${startTime}" required>
+                    <label class="block text-[11px] text-slate-300 mb-1">Bắt đầu khóa máy:</label>
+                    <input type="time" class="block-start w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-lg text-amber-300 font-mono text-sm focus:outline-none focus:border-amber-400" value="${startTime}" required>
                 </div>
                 <div class="flex-1">
-                    <label class="block text-[11px] text-slate-400 mb-1">Mở khóa lại lúc:</label>
-                    <input type="time" class="block-end w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="${endTime}" required>
+                    <label class="block text-[11px] text-slate-300 mb-1">Mở khóa lại lúc:</label>
+                    <input type="time" class="block-end w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-lg text-amber-300 font-mono text-sm focus:outline-none focus:border-amber-400" value="${endTime}" required>
                 </div>
-                <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 mt-5 px-2 font-bold transition">✕</button>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 mt-4 px-2 font-bold transition">✕</button>
             `;
             container.appendChild(row);
         }
@@ -523,23 +565,7 @@
                     sched.blocked_hours.forEach((item, index) => {
                         const parts = item.split('-');
                         if (parts.length === 2) {
-                            if (index === 0) {
-                                container.innerHTML = `
-                                    <div class="flex items-center gap-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800">
-                                        <div class="flex-1">
-                                            <label class="block text-[11px] text-slate-400 mb-1">Bắt đầu khóa máy:</label>
-                                            <input type="time" class="block-start w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="${parts[0]}" required>
-                                        </div>
-                                        <div class="flex-1">
-                                            <label class="block text-[11px] text-slate-400 mb-1">Mở khóa lại lúc:</label>
-                                            <input type="time" class="block-end w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-400 font-mono text-sm focus:outline-none focus:border-blue-500" value="${parts[1]}" required>
-                                        </div>
-                                        <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 mt-5 px-2 font-bold transition">✕</button>
-                                    </div>
-                                `;
-                            } else {
-                                addBlockWindow(parts[0], parts[1]);
-                            }
+                            addBlockWindow(parts[0], parts[1]);
                         }
                     });
                 }
@@ -555,9 +581,10 @@
             } catch (e) {}
 
             loadReportsSummary();
-            loadChildRequests();
-            loadBlockedDomains();
-            loadBlockedApps();
+            loadChildRequests(1);
+            loadBlockedDomains(1);
+            loadBlockedApps(1);
+            loadParentAuditLogs(1);
         });
 
         let usageChartInstance = null;
@@ -676,20 +703,69 @@
             }
         }
 
-        // Tải danh sách lời nhắn từ con
-        async function loadChildRequests() {
+        // Helper vẽ phân trang dạng < 1, 2, 3 ... n >
+        function renderPagination(containerId, currentPage, totalPages, changeFnName) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (totalPages <= 1) {
+                container.innerHTML = "";
+                return;
+            }
+
+            let html = `<div class="flex items-center justify-center space-x-1.5 pt-3 select-none text-xs">`;
+            const prevDisabled = currentPage <= 1;
+            html += `<button type="button" ${prevDisabled ? 'disabled' : ''} onclick="${changeFnName}(${currentPage - 1})" class="px-2.5 py-1 rounded-md border ${prevDisabled ? 'opacity-30 cursor-not-allowed border-white/10 text-slate-400' : 'hover:bg-white/10 border-white/20 text-white'} transition">◀</button>`;
+
+            for (let p = 1; p <= totalPages; p++) {
+                if (p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)) {
+                    const isActive = p === currentPage;
+                    html += `<button type="button" onclick="${changeFnName}(${p})" class="px-2.5 py-1 rounded-md border font-medium ${isActive ? 'bg-amber-500 text-slate-950 font-bold border-amber-400 shadow' : 'hover:bg-white/10 border-white/15 text-slate-200'} transition">${p}</button>`;
+                } else if (p === currentPage - 2 || p === currentPage + 2) {
+                    html += `<span class="px-1 text-slate-400">...</span>`;
+                }
+            }
+
+            const nextDisabled = currentPage >= totalPages;
+            html += `<button type="button" ${nextDisabled ? 'disabled' : ''} onclick="${changeFnName}(${currentPage + 1})" class="px-2.5 py-1 rounded-md border ${nextDisabled ? 'opacity-30 cursor-not-allowed border-white/10 text-slate-400' : 'hover:bg-white/10 border-white/20 text-white'} transition">▶</button>`;
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        let allRequests = [];
+        let reqCurrentPage = 1;
+        const REQ_PAGE_SIZE = 4;
+
+        // Tải danh sách lời nhắn từ con (có phân trang)
+        async function loadChildRequests(page = 1) {
+            reqCurrentPage = page;
             const container = document.getElementById('requests-container');
             const badge = document.getElementById('requests-badge');
+
             try {
-                const res = await fetch(`/api/requests?parent_username=${encodeURIComponent(currentParentUser)}`);
-                const requests = await res.json();
-                if (res.ok && requests.length > 0) {
+                if (page === 1) {
+                    const res = await fetch(`/api/requests?parent_username=${encodeURIComponent(currentParentUser)}`);
+                    allRequests = await res.json();
+                }
+                
+                if (allRequests && allRequests.length > 0) {
                     container.innerHTML = "";
                     let pendingCount = 0;
-                    requests.forEach(req => {
-                        if (req.status === 'pending') pendingCount++;
+                    allRequests.forEach(r => { if (r.status === 'pending') pendingCount++; });
+                    
+                    if (pendingCount > 0 && badge) {
+                        badge.textContent = pendingCount;
+                        badge.classList.remove('hidden');
+                    } else if (badge) {
+                        badge.classList.add('hidden');
+                    }
+
+                    const totalPages = Math.ceil(allRequests.length / REQ_PAGE_SIZE);
+                    const startIdx = (reqCurrentPage - 1) * REQ_PAGE_SIZE;
+                    const pageItems = allRequests.slice(startIdx, startIdx + REQ_PAGE_SIZE);
+
+                    pageItems.forEach(req => {
                         const item = document.createElement('div');
-                        item.className = "p-4 bg-slate-900/60 border border-slate-800 rounded-2xl flex items-center justify-between text-xs";
+                        item.className = "p-3.5 bg-white/[0.08] backdrop-blur-sm border border-white/15 rounded-xl flex items-center justify-between text-xs shadow-sm";
                         
                         let labelType = "Lời nhắn";
                         if (req.request_type === 'extra_time') labelType = "Xin thêm giờ";
@@ -697,27 +773,24 @@
 
                         item.innerHTML = `
                             <div>
-                                <span class="font-bold text-amber-300 uppercase">${labelType}</span>: <span class="text-white text-sm font-medium ml-1">${req.content}</span>
-                                <span class="block text-[11px] text-slate-400 mt-1">Trạng thái: <b class="${req.status === 'approved' ? 'text-emerald-400' : (req.status === 'rejected' ? 'text-red-400' : 'text-amber-400')}">${req.status === 'approved' ? 'Đã đồng ý' : (req.status === 'rejected' ? 'Đã từ chối' : 'Đang chờ bạn duyệt')}</b></span>
+                                <span class="font-bold text-amber-300 uppercase">${labelType}</span>: <span class="text-white text-xs sm:text-sm font-medium ml-1">${req.content}</span>
+                                <span class="block text-[11px] text-slate-300 mt-0.5">Trạng thái: <b class="${req.status === 'approved' ? 'text-emerald-400' : (req.status === 'rejected' ? 'text-red-400' : 'text-amber-300')}">${req.status === 'approved' ? 'Đã đồng ý' : (req.status === 'rejected' ? 'Đã từ chối' : 'Đang chờ bạn duyệt')}</b></span>
                             </div>
                             ${req.status === 'pending' ? `
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="approveRequest(${req.id})" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium transition shadow">Đồng ý (+15p)</button>
-                                    <button onclick="rejectRequest(${req.id})" class="px-3 py-1.5 bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white rounded-xl font-medium transition">Từ chối</button>
+                                    <button onclick="approveRequest(${req.id})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition shadow">Đồng ý (+15p)</button>
+                                    <button onclick="rejectRequest(${req.id})" class="px-2.5 py-1 bg-red-600/30 hover:bg-red-600 text-red-200 hover:text-white rounded-lg font-medium transition">Từ chối</button>
                                 </div>
-                            ` : '<span class="text-slate-400 font-medium">Đã xử lý</span>'}
+                            ` : '<span class="text-slate-400 font-medium text-[11px]">Đã xử lý</span>'}
                         `;
                         container.appendChild(item);
                     });
-                    if (pendingCount > 0 && badge) {
-                        badge.textContent = pendingCount;
-                        badge.classList.remove('hidden');
-                    } else if (badge) {
-                        badge.classList.add('hidden');
-                    }
+
+                    renderPagination('requests-pagination', reqCurrentPage, totalPages, 'loadChildRequests');
                 } else {
                     container.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">Không có tin nhắn nào từ con.</p>`;
                     if (badge) badge.classList.add('hidden');
+                    renderPagination('requests-pagination', 1, 0, 'loadChildRequests');
                 }
             } catch (e) {
                 container.innerHTML = `<p class="text-xs text-red-400 text-center py-8">Lỗi kiểm tra tin nhắn.</p>`;
@@ -727,10 +800,9 @@
         async function approveRequest(requestId) {
             try {
                 const res = await fetch(`/api/requests/${requestId}/approve`, { method: 'POST' });
-                const data = await res.json();
                 if (res.ok) {
                     alert('Đã cho phép con thêm 15 phút!');
-                    loadChildRequests();
+                    loadChildRequests(1);
                 } else {
                     alert('Lỗi phê duyệt');
                 }
@@ -742,10 +814,9 @@
         async function rejectRequest(requestId) {
             try {
                 const res = await fetch(`/api/requests/${requestId}/reject`, { method: 'POST' });
-                const data = await res.json();
                 if (res.ok) {
                     alert('Đã từ chối yêu cầu.');
-                    loadChildRequests();
+                    loadChildRequests(1);
                 } else {
                     alert('Lỗi thao tác');
                 }
@@ -754,38 +825,52 @@
             }
         }
 
-        // Tải danh sách trang web chặn
-        async function loadBlockedDomains() {
+        let allDomains = [];
+        let domainCurrentPage = 1;
+        const DOMAIN_PAGE_SIZE = 5;
+
+        // Tải danh sách trang web chặn (có phân trang)
+        async function loadBlockedDomains(page = 1) {
+            domainCurrentPage = page;
             const category = document.getElementById('filter-category').value;
             const container = document.getElementById('blocked-domains-list');
             
-            let url = '/api/domains/';
-            if (category && category !== 'Tất cả') {
-                url += `?category=${encodeURIComponent(category)}`;
-            }
-
             try {
-                const res = await fetch(url);
-                const domains = await res.json();
-                if (res.ok && domains.length > 0) {
+                if (page === 1) {
+                    let url = '/api/domains/';
+                    if (category && category !== 'Tất cả') {
+                        url += `?category=${encodeURIComponent(category)}`;
+                    }
+                    const res = await fetch(url);
+                    allDomains = await res.json();
+                }
+
+                if (allDomains && allDomains.length > 0) {
                     container.innerHTML = "";
-                    domains.forEach(item => {
+                    const totalPages = Math.ceil(allDomains.length / DOMAIN_PAGE_SIZE);
+                    const startIdx = (domainCurrentPage - 1) * DOMAIN_PAGE_SIZE;
+                    const pageItems = allDomains.slice(startIdx, startIdx + DOMAIN_PAGE_SIZE);
+
+                    pageItems.forEach(item => {
                         const row = document.createElement('div');
-                        row.className = "p-3.5 flex items-center justify-between text-sm hover:bg-slate-800/40 transition";
+                        row.className = "p-3 flex items-center justify-between text-xs sm:text-sm hover:bg-white/[0.06] transition";
                         row.innerHTML = `
-                            <div class="flex items-center space-x-3">
-                                <span class="font-medium text-red-400">🌐 ${item.domain}</span>
-                                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-700 rounded-full text-[10px]">${item.category}</span>
+                            <div class="flex items-center space-x-2.5">
+                                <span class="font-medium text-amber-300">🌐 ${item.domain}</span>
+                                <span class="px-2 py-0.5 bg-white/10 text-slate-300 border border-white/15 rounded-full text-[10px]">${item.category}</span>
                             </div>
                             <button onclick="deleteDomain(${item.id})" class="text-slate-400 hover:text-red-400 text-xs font-medium px-2 py-1 transition">Bỏ chặn</button>
                         `;
                         container.appendChild(row);
                     });
+
+                    renderPagination('domains-pagination', domainCurrentPage, totalPages, 'loadBlockedDomains');
                 } else {
-                    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Chưa có trang web nào trong nhóm này.</div>`;
+                    container.innerHTML = `<div class="p-5 text-center text-xs text-slate-400">Chưa có trang web nào trong nhóm này.</div>`;
+                    renderPagination('domains-pagination', 1, 0, 'loadBlockedDomains');
                 }
             } catch (e) {
-                container.innerHTML = `<div class="p-6 text-center text-xs text-red-400">Lỗi tải danh sách.</div>`;
+                container.innerHTML = `<div class="p-5 text-center text-xs text-red-400">Lỗi tải danh sách.</div>`;
             }
         }
 
@@ -803,7 +888,7 @@
                 const data = await res.json();
                 if (res.ok) {
                     document.getElementById('domain-input').value = "";
-                    loadBlockedDomains();
+                    loadBlockedDomains(1);
                 } else {
                     alert(data.detail || 'Lỗi thêm trang web.');
                 }
@@ -817,37 +902,52 @@
             try {
                 const res = await fetch(`/api/domains/${domainId}`, { method: 'DELETE' });
                 if (res.ok) {
-                    loadBlockedDomains();
+                    loadBlockedDomains(1);
                 }
             } catch (e) {
                 alert('Lỗi kết nối.');
             }
         }
 
-        // Tải danh sách ứng dụng chặn
-        async function loadBlockedApps() {
+        let allApps = [];
+        let appCurrentPage = 1;
+        const APP_PAGE_SIZE = 5;
+
+        // Tải danh sách ứng dụng chặn (có phân trang)
+        async function loadBlockedApps(page = 1) {
+            appCurrentPage = page;
             const container = document.getElementById('blocked-apps-list');
             try {
-                const res = await fetch('/api/apps/');
-                const apps = await res.json();
-                if (res.ok && apps.length > 0) {
+                if (page === 1) {
+                    const res = await fetch('/api/apps/');
+                    allApps = await res.json();
+                }
+
+                if (allApps && allApps.length > 0) {
                     container.innerHTML = "";
-                    apps.forEach(item => {
+                    const totalPages = Math.ceil(allApps.length / APP_PAGE_SIZE);
+                    const startIdx = (appCurrentPage - 1) * APP_PAGE_SIZE;
+                    const pageItems = allApps.slice(startIdx, startIdx + APP_PAGE_SIZE);
+
+                    pageItems.forEach(item => {
                         const row = document.createElement('div');
-                        row.className = "p-3.5 flex items-center justify-between text-sm hover:bg-slate-800/40 transition";
+                        row.className = "p-3 flex items-center justify-between text-xs sm:text-sm hover:bg-white/[0.06] transition";
                         row.innerHTML = `
                             <div>
-                                <span class="font-bold text-red-400">⚙️ ${item.process_name}</span>
+                                <span class="font-bold text-amber-300">⚙️ ${item.process_name}</span>
                             </div>
                             <button onclick="deleteApp(${item.id})" class="text-slate-400 hover:text-red-400 text-xs font-medium px-2 py-1 transition">Bỏ chặn</button>
                         `;
                         container.appendChild(row);
                     });
+
+                    renderPagination('apps-pagination', appCurrentPage, totalPages, 'loadBlockedApps');
                 } else {
-                    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Chưa có game hoặc ứng dụng nào bị chặn.</div>`;
+                    container.innerHTML = `<div class="p-5 text-center text-xs text-slate-400">Chưa có game hoặc ứng dụng nào bị chặn.</div>`;
+                    renderPagination('apps-pagination', 1, 0, 'loadBlockedApps');
                 }
             } catch (e) {
-                container.innerHTML = `<div class="p-6 text-center text-xs text-red-400">Lỗi tải danh sách.</div>`;
+                container.innerHTML = `<div class="p-5 text-center text-xs text-red-400">Lỗi tải danh sách.</div>`;
             }
         }
 
@@ -867,7 +967,7 @@
                 const data = await res.json();
                 if (res.ok) {
                     document.getElementById('app-process-input').value = "";
-                    loadBlockedApps();
+                    loadBlockedApps(1);
                 } else {
                     alert(data.detail || 'Lỗi thêm ứng dụng.');
                 }
@@ -881,10 +981,58 @@
             try {
                 const res = await fetch(`/api/apps/${appId}`, { method: 'DELETE' });
                 if (res.ok) {
-                    loadBlockedApps();
+                    loadBlockedApps(1);
                 }
             } catch (e) {
                 alert('Lỗi kết nối.');
+            }
+        }
+
+        let allAudits = [];
+        let auditCurrentPage = 1;
+        const AUDIT_PAGE_SIZE = 5;
+
+        // Tải nhật ký thao tác (có phân trang)
+        async function loadParentAuditLogs(page = 1) {
+            auditCurrentPage = page;
+            const container = document.getElementById('parent-audit-container');
+            if (!container) return;
+            try {
+                if (page === 1) {
+                    const res = await fetch('/api/audit-logs?limit=50');
+                    allAudits = await res.json();
+                }
+
+                if (allAudits && allAudits.length > 0) {
+                    container.innerHTML = "";
+                    const totalPages = Math.ceil(allAudits.length / AUDIT_PAGE_SIZE);
+                    const startIdx = (auditCurrentPage - 1) * AUDIT_PAGE_SIZE;
+                    const pageItems = allAudits.slice(startIdx, startIdx + AUDIT_PAGE_SIZE);
+
+                    pageItems.forEach(log => {
+                        let actionLabel = 'Đã chỉnh sửa quy định';
+                        if (log.action.includes('POLICY')) actionLabel = 'Đã cập nhật giờ dùng máy';
+                        if (log.action.includes('EMERGENCY')) actionLabel = 'Đã gửi lệnh khẩn cấp';
+
+                        const row = document.createElement('div');
+                        row.className = "py-2.5 flex justify-between items-center";
+                        row.innerHTML = `
+                            <div>
+                                <span class="text-white font-medium">${actionLabel}</span>
+                                <span class="text-slate-300 text-[11px] block mt-0.5">${log.new_value || ''}</span>
+                            </div>
+                            <span class="text-slate-400 text-[11px] font-mono">${log.timestamp}</span>
+                        `;
+                        container.appendChild(row);
+                    });
+
+                    renderPagination('audit-pagination', auditCurrentPage, totalPages, 'loadParentAuditLogs');
+                } else {
+                    container.innerHTML = `<div class="py-5 text-center text-slate-400">Chưa có hoạt động nào được ghi nhận.</div>`;
+                    renderPagination('audit-pagination', 1, 0, 'loadParentAuditLogs');
+                }
+            } catch (e) {
+                container.innerHTML = `<div class="py-5 text-center text-red-400">Lỗi tải nhật ký thao tác.</div>`;
             }
         }
 

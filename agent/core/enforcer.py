@@ -29,7 +29,7 @@ def get_idle_duration_sec() -> float:
     return 0.0
 
 class TimeEnforcer:
-    def __init__(self, on_event_callback=None):
+    def __init__(self, on_event_callback=None, disable_real_lock: bool = True):
         # M6: Sử dụng đồng hồ đơn điệu (monotonic clock) chống gian lận lùi đồng hồ hệ thống
         self.last_mono = time.monotonic()
         self.last_wall_time = time.time()
@@ -37,6 +37,8 @@ class TimeEnforcer:
         self.is_emergency_locked = False
         self.active_usage_seconds = 0.0
         self.on_event_callback = on_event_callback
+        # Chế độ phát triển/gỡ lỗi: Vô hiệu hóa lệnh Win32 LockWorkStation thật để dev thoải mái chỉnh code/UI
+        self.disable_real_lock = disable_real_lock
 
         # Quản lý cảnh báo trước 10, 5, 1 phút (F1 BẮT BUỘC)
         self.warned_10 = False
@@ -82,11 +84,11 @@ class TimeEnforcer:
 
     def get_effective_quota(self, policy_details=None):
         if not policy_details:
-            return 90 + self.bonus_minutes
+            return 1440 + self.bonus_minutes  # Mặc định 1440 phút (24h) trước khi enroll để lập trình viên thoải mái phát triển
 
         now = datetime.datetime.now()
         is_weekend = now.weekday() >= 5  # 5 = Thứ 7, 6 = Chủ nhật
-        base_quota = policy_details.get("quota_weekend", 120) if is_weekend else policy_details.get("quota_weekday", 90)
+        base_quota = policy_details.get("quota_weekend", 1440) if is_weekend else policy_details.get("quota_weekday", 1440)
         return base_quota + self.bonus_minutes
 
     def get_remaining_minutes(self, policy_details=None) -> int:
@@ -271,7 +273,11 @@ class TimeEnforcer:
         return False, "Bình thường"
 
     def lock_workstation(self):
-        """Gọi API của Windows để khóa màn hình máy tính"""
+        """Gọi API của Windows để khóa màn hình máy tính (Hỗ trợ chế độ DEV/BYPASS)"""
+        if getattr(self, "disable_real_lock", True) or os.environ.get("DISABLE_LOCK", "1") == "1":
+            print("[*] [Dev Mode] Đã phát hiện sự kiện khóa máy nhưng ĐÃ BỎ QUA LockWorkStation() thật để lập trình viên tự do chỉnh sửa mã nguồn và giao diện.")
+            return
+
         try:
             print("[+] Executing LockWorkStation()...")
             ctypes.windll.user32.LockWorkStation()

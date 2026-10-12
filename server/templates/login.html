@@ -4,82 +4,308 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OpenGuardKids - Đăng Nhập & Đăng Ký</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+
+    <!-- Google Fonts theo phong cách Orange Charming -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Edu+QLD+Hand:wght@400..700&family=Itim&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0e1118;
+            --card-bg: rgba(18, 20, 28, 0.78);
+            --title-color: #faebd7;
+            --accent-pink: #ffe4e1;
+            --accent-orange: #ff9f43;
+            --accent-green: #2ecc71;
+            --text-color: #fffaf0;
+            --text-muted: #cbd5e1;
+            --border-glass: rgba(255, 228, 225, 0.18);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Itim', cursive, sans-serif;
+            color: var(--text-color);
+            background: linear-gradient(135deg, #181324 0%, #111424 50%, #171d26 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            background-attachment: fixed;
+        }
+
+        /* Backdrop hiệu ứng đốm sáng màu sắc */
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 20% 25%, rgba(255, 159, 67, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 75%, rgba(255, 107, 129, 0.15) 0%, transparent 45%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 460px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 28px;
+            padding: 36px 30px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .auth-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 228, 225, 0.35);
+            filter: drop-shadow(0 4px 12px rgba(255, 159, 67, 0.4));
+            margin-bottom: 12px;
+        }
+
+        .auth-title {
+            font-family: 'Amatic SC', cursive;
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--title-color);
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        .auth-desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* Tabs chuyển đổi */
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            margin-bottom: 22px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            font-family: 'Itim', cursive;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            color: #ffd8a8;
+            border-bottom-color: var(--accent-orange);
+            text-shadow: 0 0 12px rgba(255, 159, 67, 0.4);
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: var(--accent-pink);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            color: #fff;
+            font-family: 'Itim', cursive;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 14px rgba(255, 159, 67, 0.3);
+            background: rgba(0, 0, 0, 0.55);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #ff9f43 0%, #ee5253 100%);
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            font-family: 'Itim', cursive;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(255, 159, 67, 0.35);
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(255, 159, 67, 0.5);
+        }
+
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .alert-error {
+            background: rgba(238, 82, 83, 0.2);
+            color: #ff9f9f;
+            border: 1px solid rgba(238, 82, 83, 0.4);
+        }
+
+        .alert-success {
+            background: rgba(46, 204, 113, 0.2);
+            color: #a8f0c6;
+            border: 1px solid rgba(46, 204, 113, 0.4);
+        }
+
+        .demo-accounts {
+            margin-top: 22px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .demo-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 3px 8px;
+            border-radius: 8px;
+            color: #ffd8a8;
+            font-family: monospace;
+            margin: 2px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/50 p-8 shadow-2xl">
-        <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600/20 text-blue-400 rounded-2xl mb-4 border border-blue-500/30">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-            </div>
-            <h1 class="text-2xl font-bold text-white">OpenGuardKids</h1>
-            <p class="text-sm text-slate-400 mt-1">Hệ thống quản lý sử dụng máy tính trẻ em</p>
+
+<body>
+    <div class="backdrop"></div>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <img src="/static/images/shield_logo.svg" alt="OpenGuardKids" class="auth-logo" onerror="this.src='/static/images/pic5.jpg'">
+            <h1 class="auth-title">OpenGuardKids</h1>
+            <p class="auth-desc">Đồng hành & bảo vệ việc sử dụng máy tính của con</p>
         </div>
 
-        <!-- Tab chuyển đổi Đăng Nhập / Đăng Ký -->
-        <div class="flex border-b border-slate-700/60 mb-6">
-            <button id="tab-login" onclick="switchTab('login')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400">
+        <!-- Tab chuyển đổi -->
+        <div class="tabs-header">
+            <button id="tab-login" onclick="switchTab('login')" class="tab-btn active">
                 Đăng Nhập
             </button>
-            <button id="tab-register" onclick="switchTab('register')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+            <button id="tab-register" onclick="switchTab('register')" class="tab-btn">
                 Đăng Ký Mới
             </button>
         </div>
 
-        <div id="alert-box" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
+        <div id="alert-box" class="hidden alert-box"></div>
 
         <!-- Form Đăng Nhập -->
-        <form id="login-form" class="space-y-5">
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Tên đăng nhập</label>
-                <input type="text" id="login-username" required placeholder="parent_admin hoặc be_an"
-                    class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500">
+        <form id="login-form">
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập:</label>
+                <input type="text" id="login-username" required placeholder="parent_admin hoặc be_an" class="form-input">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">Mật khẩu</label>
-                <input type="password" id="login-password" required placeholder="••••••••"
-                    class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500">
+
+            <div class="form-group">
+                <label class="form-label">Mật khẩu:</label>
+                <input type="password" id="login-password" required placeholder="••••••••" class="form-input">
             </div>
-            <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-600/25">
-                Đăng nhập
+
+            <button type="submit" class="btn-submit">
+                🚀 Đăng Nhập Ngay
             </button>
         </form>
 
         <!-- Form Đăng Ký -->
-        <form id="register-form" class="hidden space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Tên đăng nhập mới</label>
-                <input type="text" id="reg-username" required placeholder="Ví dụ: parent_hung hoặc be_minh"
-                    class="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 text-sm">
+        <form id="register-form" class="hidden">
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập mới:</label>
+                <input type="text" id="reg-username" required placeholder="Ví dụ: parent_hung hoặc be_minh" class="form-input">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Mật khẩu</label>
-                <input type="password" id="reg-password" required placeholder="••••••••"
-                    class="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 text-sm">
+
+            <div class="form-group">
+                <label class="form-label">Mật khẩu (Phụ huynh $\ge$ 10 ký tự):</label>
+                <input type="password" id="reg-password" required placeholder="••••••••" class="form-input">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Vai trò tài khoản (Role)</label>
-                <select id="reg-role" onchange="toggleChildNameInput()" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 text-sm">
+
+            <div class="form-group">
+                <label class="form-label">Vai trò tài khoản:</label>
+                <select id="reg-role" onchange="toggleChildNameInput()" class="form-select">
                     <option value="parent">Phụ huynh (Parent Admin)</option>
                     <option value="child">Trẻ em (Child Account)</option>
                 </select>
             </div>
-            <div id="child-name-container" class="hidden">
-                <label class="block text-sm font-medium text-slate-300 mb-1">Tên trẻ em</label>
-                <input type="text" id="reg-child-name" placeholder="Ví dụ: Bé Minh"
-                    class="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 text-slate-100 text-sm">
+
+            <div id="child-name-container" class="form-group hidden">
+                <label class="form-label">Tên thân mật của bé:</label>
+                <input type="text" id="reg-child-name" placeholder="Ví dụ: Bé Minh" class="form-input">
             </div>
-            <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition shadow-lg shadow-emerald-600/25">
-                Đăng Ký & Lưu Vào CSDL
+
+            <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #2ecc71 0%, #10b981 100%);">
+                ✨ Đăng Ký Tài Khoản
             </button>
         </form>
 
-        <div class="mt-6 pt-6 border-t border-slate-700/50 text-xs text-center text-slate-500">
-            Tài khoản mẫu: <span class="text-slate-400 font-mono">parent_admin / admin123</span> hoặc <span class="text-slate-400 font-mono">be_an / child123</span>
+        <div class="demo-accounts">
+            Tài khoản dùng thử:<br>
+            Phụ huynh: <span class="demo-badge">parent_admin / admin123</span><br>
+            Trẻ em: <span class="demo-badge">be_an / child123</span>
         </div>
     </div>
 
@@ -95,13 +321,13 @@
             if (tab === 'login') {
                 loginForm.classList.remove('hidden');
                 regForm.classList.add('hidden');
-                tabLogin.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400';
-                tabReg.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+                tabLogin.classList.add('active');
+                tabReg.classList.remove('active');
             } else {
                 loginForm.classList.add('hidden');
                 regForm.classList.remove('hidden');
-                tabReg.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400';
-                tabLogin.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+                tabReg.classList.add('active');
+                tabLogin.classList.remove('active');
             }
         }
 
@@ -140,12 +366,12 @@
                     }
                     window.location.href = data.redirect_url;
                 } else {
-                    alertBox.className = 'mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium';
+                    alertBox.className = 'alert-box alert-error';
                     alertBox.textContent = data.detail || 'Đăng nhập thất bại!';
                     alertBox.classList.remove('hidden');
                 }
             } catch (err) {
-                alertBox.className = 'mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium';
+                alertBox.className = 'alert-box alert-error';
                 alertBox.textContent = 'Không thể kết nối tới Server.';
                 alertBox.classList.remove('hidden');
             }
@@ -169,17 +395,17 @@
                 
                 const data = await response.json();
                 if (response.ok) {
-                    alertBox.className = 'mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium';
-                    alertBox.textContent = `[Thành công] ${data.message}`;
+                    alertBox.className = 'alert-box alert-success';
+                    alertBox.textContent = `🎉 [Thành công] ${data.message}`;
                     alertBox.classList.remove('hidden');
                     setTimeout(() => switchTab('login'), 1500);
                 } else {
-                    alertBox.className = 'mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium';
+                    alertBox.className = 'alert-box alert-error';
                     alertBox.textContent = data.detail || 'Đăng ký thất bại!';
                     alertBox.classList.remove('hidden');
                 }
             } catch (err) {
-                alertBox.className = 'mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium';
+                alertBox.className = 'alert-box alert-error';
                 alertBox.textContent = 'Không thể kết nối tới Server.';
                 alertBox.classList.remove('hidden');
             }

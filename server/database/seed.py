@@ -43,19 +43,19 @@ def init_db():
     default_matrix = [[1 for _ in range(48)] for _ in range(7)]
     schedule_str = json.dumps(default_matrix)
 
-    # 3. Tạo phiên bản chính sách v1 (F1, F4)
+    # 3. Tạo phiên bản chính sách v1 (F1, F4: Mặc định 1440 phút / 24h để lập trình viên thoải mái phát triển UI)
     policy_data = {
         "version": 1,
-        "quota_weekday": 90,
-        "quota_weekend": 120,
+        "quota_weekday": 1440,
+        "quota_weekend": 1440,
         "schedule_matrix_json": schedule_str
     }
     sig = generate_policy_hmac(policy_data)
 
     policy_v1 = Policy(
         version=1,
-        quota_weekday=90,
-        quota_weekend=120,
+        quota_weekday=1440,
+        quota_weekend=1440,
         schedule_matrix_json=schedule_str,
         hmac_signature=sig
     )

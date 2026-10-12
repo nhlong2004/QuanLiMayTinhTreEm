@@ -100,7 +100,7 @@ class SystemTrayApp:
             time.sleep(15)
 
     def start_background(self):
-        """Khởi chạy System Tray Icon trên background thread"""
+        """Khởi chạy System Tray Icon trên background thread (NT1, F5)"""
         if self.running:
             return
 
@@ -114,13 +114,22 @@ class SystemTrayApp:
         )
 
         def _run():
-            # Khởi chạy thread cập nhật tooltip
-            threading.Thread(target=self._update_tooltip_loop, daemon=True).start()
-            self.icon.run()
+            try:
+                # Khởi chạy thread cập nhật tooltip
+                threading.Thread(target=self._update_tooltip_loop, daemon=True).start()
+                self.icon.run()
+            except Exception as e:
+                print(f"[-] [Tray UI] Lỗi hiển thị biểu tượng khay: {e}")
+            finally:
+                self.running = False
 
         self.tray_thread = threading.Thread(target=_run, daemon=True)
         self.tray_thread.start()
         print("[+] [Tray UI] Biểu tượng khay hệ thống Windows (NT1) ĐÃ KHỞI CHẠY thành công.")
+
+    def is_running(self) -> bool:
+        """Kiểm tra biểu tượng khay hệ thống có đang hoạt động hay không (F5: Chống lạm dụng / Stalkerware)"""
+        return self.running and (self.tray_thread is not None and self.tray_thread.is_alive())
 
     def notify_startup(self, child_name: str = "em"):
         """Thông báo thân thiện, súc tích khi Agent khởi động (NT1 BẮT BUỘC)"""

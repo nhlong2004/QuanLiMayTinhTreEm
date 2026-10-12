@@ -32,8 +32,6 @@ def run_agent_loop():
             duration_sec=event_data.get("duration_sec", 0)
         )
 
-    enforcer = TimeEnforcer(on_event_callback=on_enforcer_event)
-
     # Ghep doi ban dau neu chua co config
     config = sync_manager.load_config()
     if not config or "device_id" not in config:
@@ -41,6 +39,9 @@ def run_agent_loop():
 
     device_id = config.get("device_id", "7b67f9f8-7df6-4e96-8d66-2616c7b7dc13")
     child_id = config.get("child_id", 1)
+    disable_real_lock = config.get("disable_real_lock", True)
+
+    enforcer = TimeEnforcer(on_event_callback=on_enforcer_event, disable_real_lock=disable_real_lock)
 
     # 1. Callback ghi nhận sự kiện vi phạm ứng dụng (F3)
     def on_app_violation(event_data):
@@ -116,37 +117,67 @@ def run_agent_loop():
     current_child_name = config.get("child_name") or "em"
     tray_app.notify_startup(child_name=current_child_name)
 
-    print(f"[*] Agent OpenGuardKids đã sẵn sàng bảo vệ '{current_child_name}'. Bắt đầu vòng lặp đồng bộ...")
+    print(f"[*] Agent OpenGuardKids đã sẵn sàng bảo vệ '{current_child_name}'. Bắt đầu vòng lặp đồng bộ và thực thi...")
+
+    policy_details = config.get("policy_details")
+    last_sync_time = 0.0
+    sync_interval_sec = 60.0    # Heartbeat & sync sự kiện mỗi 60 giây (F4, F3)
+    enforce_interval_sec = 2.0  # Quét ứng dụng & lịch cấm mỗi 2 giây (đáp ứng SLA < 5s của F1, F2)
+
+    # Chờ 1 giây để Tray icon ổn định luồng
+    time.sleep(1.0)
 
     while True:
-        # A. Đồng bộ chính sách từ Server
-        success, policy_details = sync_manager.check_and_sync()
+        now_ts = time.time()
 
-        # B. Đẩy hàng đợi sự kiện offline về Server (F3)
-        synced_count = event_logger.flush_and_sync()
-        if synced_count > 0:
-            print(f"[+] [Sync] Đã đẩy {synced_count} sự kiện tồn đọng lên Server thành công.")
+        # 0. Chống lạm dụng (F5, NT1): Kiểm tra biểu tượng khay hệ thống
+        # Nếu biểu tượng bị tắt hoặc không hiển thị, Agent bắt buộc phải tự dừng (chống Stalkerware)
+        if hasattr(tray_app, "is_running") and not tray_app.is_running():
+            print("[!] [Anti-Stalkerware] Biểu tượng khay hệ thống đã dừng hoặc không thể hiển thị!")
+            print("[!] Agent tự động kết thúc theo nguyên tắc minh bạch bắt buộc (NT1, F5).")
+            sys.exit(0)
 
-        # C. Thực thi kiểm tra quota và lịch cấm (F1)
-        is_locked, reason = enforcer.check_and_enforce(policy_details)
-        if is_locked:
-            event_logger.log_event(device_id=device_id, child_id=child_id, event_type="locked", subject=reason)
-            print(f"[!] Lý do khóa máy: {reason}")
+        # A. Chu kỳ 60 giây: Gửi nhịp tim heartbeat, đồng bộ chính sách và đẩy sự kiện lên Server
+        if now_ts - last_sync_time >= sync_interval_sec:
+            last_sync_time = now_ts
+            try:
+                success, updated_policy = sync_manager.check_and_sync()
+                if success and updated_policy:
+                    policy_details = updated_policy
 
-        # D. Kiểm soát tiến trình ứng dụng bị chặn (F2, NT4)
+                # Cập nhật danh sách tên miền bị chặn cho DNS Proxy (F2)
+                if policy_details and "blocked_domains" in policy_details:
+                    blocked_domains = policy_details.get("blocked_domains", [])
+                    dns_proxy.update_blocked_domains(blocked_domains)
+
+                # Đẩy hàng đợi sự kiện offline về Server (F3)
+                synced_count = event_logger.flush_and_sync()
+                if synced_count > 0:
+                    print(f"[+] [Sync] Đã đẩy {synced_count} sự kiện tồn đọng lên Server thành công.")
+            except Exception as e:
+                print(f"[-] [Sync] Lỗi chu kỳ đồng bộ: {e}")
+
+        # B. Chu kỳ 2 giây: Thực thi kiểm tra quota và lịch cấm (F1 BẮT BUỘC: SLA phản hồi < 5 giây)
+        try:
+            is_locked, reason = enforcer.check_and_enforce(policy_details)
+            if is_locked:
+                event_logger.log_event(device_id=device_id, child_id=child_id, event_type="locked", subject=reason)
+                print(f"[!] Lý do khóa máy: {reason}")
+        except Exception as e:
+            print(f"[-] [Enforcer] Lỗi kiểm tra thời gian: {e}")
+
+        # C. Chu kỳ 2 giây: Kiểm soát và kết thúc ngay tiến trình ứng dụng bị cấm (F2, NT4)
         if policy_details and "blocked_apps" in policy_details:
-            blocked_apps = policy_details.get("blocked_apps", [])
-            violations = app_controller.scan_and_enforce(blocked_apps)
-            if violations:
-                print(f"[*] Đã ngăn chặn {len(violations)} tiến trình ứng dụng vi phạm!")
+            try:
+                blocked_apps = policy_details.get("blocked_apps", [])
+                violations = app_controller.scan_and_enforce(blocked_apps)
+                if violations:
+                    print(f"[*] Đã ngăn chặn {len(violations)} tiến trình ứng dụng vi phạm!")
+            except Exception as e:
+                print(f"[-] [AppController] Lỗi kiểm soát ứng dụng: {e}")
 
-        # E. Cập nhật danh sách tên miền bị chặn cho DNS Proxy (F2)
-        if policy_details and "blocked_domains" in policy_details:
-            blocked_domains = policy_details.get("blocked_domains", [])
-            dns_proxy.update_blocked_domains(blocked_domains)
-
-        # Chu kỳ lặp 60 giây
-        time.sleep(60)
+        # Nghỉ 2 giây cho chu kỳ quét tiếp theo
+        time.sleep(enforce_interval_sec)
 
 if __name__ == "__main__":
     current_pid = os.getpid()

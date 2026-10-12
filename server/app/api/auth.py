@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
+import os
 import random
 import string
 import uuid
@@ -19,7 +20,7 @@ FAILED_ATTEMPTS = {}  # key: ip_or_user -> {"count": int, "locked_until": dateti
 def hash_password_scrypt(password: str, salt: bytes = None) -> str:
     """Băm mật khẩu bằng scrypt theo chuẩn an toàn (F5 BẮT BUỘC)"""
     if salt is None:
-        salt = os.urandom(16) if 'os' in globals() else hashlib.sha256(password.encode()).digest()[:16]
+        salt = os.urandom(16)
     key = hashlib.scrypt(password.encode('utf-8'), salt=salt, n=16384, r=8, p=1, dklen=32)
     return f"scrypt${salt.hex()}${key.hex()}"
 

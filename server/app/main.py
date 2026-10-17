@@ -87,8 +87,9 @@ def page_parent_dashboard(request: Request, username: Optional[str] = Query(None
         # Tìm chính sách của riêng phụ huynh này
         latest_policy = db.query(Policy).filter(Policy.parent_username == username).order_by(Policy.version.desc()).first()
     else:
-        devices = query.all()
-        recent_audits = db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(10).all()
+        # Không có username chỉ định -> không trả dữ liệu thiết bị của người khác
+        devices = []
+        recent_audits = []
 
     # Nếu phụ huynh mới chưa sửa chính sách -> dùng chính sách mặc định v1
     if not latest_policy:
@@ -103,7 +104,7 @@ def page_parent_dashboard(request: Request, username: Optional[str] = Query(None
             "devices": devices, 
             "latest_policy": latest_policy,
             "recent_audits": recent_audits,
-            "parent_username": username or "Phụ huynh"
+            "parent_username": username or ""
         }
     )
 
@@ -153,6 +154,7 @@ def page_child_screen(
             "child_username": child_user.username if child_user else (username or ""),
             "child_id": child_user.id if child_user else None,
             "is_paired": (device is not None),
-            "paired_device": device
+            "paired_device": device,
+            "paired_parent_username": paired_parent_username or ""
         }
     )

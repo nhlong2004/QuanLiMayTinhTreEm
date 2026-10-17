@@ -21,6 +21,9 @@ def compute_hmac(version: int, q_weekday: int, q_weekend: int, matrix_data: any)
     return hmac.new(SECRET_KEY.encode(), message.encode(), hashlib.sha256).hexdigest()
 
 
+# Lưu trữ thời gian sử dụng thực từ Agent gửi lên theo thời gian thực (F1, F3)
+LIVE_DEVICE_METRICS = {}
+
 @router.post("/api/heartbeat")
 def heartbeat(data: HeartbeatRequest, db: Session = Depends(get_db)):
     """API Nhịp tim định kỳ (60s/lần) từ Agent - Áp dụng đúng chính sách của Phụ huynh đã ghép đôi"""
@@ -32,6 +35,14 @@ def heartbeat(data: HeartbeatRequest, db: Session = Depends(get_db)):
     device.policy_version = data.current_policy_version
     device.last_seen = datetime.utcnow()
     device.status = "online"
+
+    # Cập nhật live metrics vào RAM để API summary đọc tức thì
+    LIVE_DEVICE_METRICS[data.device_id] = {
+        "used_minutes": data.used_minutes or 0,
+        "remaining_minutes": data.remaining_minutes,
+        "bonus_minutes": data.bonus_minutes or 0,
+        "updated_at": datetime.utcnow()
+    }
 
     # Tìm chính sách mới nhất của ĐÚNG phụ huynh sở hữu thiết bị này
     latest_policy = None

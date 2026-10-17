@@ -37,11 +37,19 @@ class PolicySyncManager:
         with open(self.config_file, "w", encoding="utf-8") as f:
             json.dump(config_data, f, ensure_ascii=False, indent=4)
 
-    def enroll_device(self, device_name="PC-Phong-Khach", child_name="Be An"):
-        """Ghep doi thiet bi voi Server"""
+    def enroll_device(self, device_name=None, child_name=None, enroll_code=None):
+        """Ghep doi thiet bi voi Server - Ho tro da may agent / phong may / multi-kid"""
+        import uuid
+        import socket
+
         config = self.load_config()
-        enroll_code = config.get("enroll_code", "OGK2026X")
-        device_id = config.get("device_id", "7b67f9f8-7df6-4e96-8d66-2616c7b7dc13")
+        if not device_name:
+            device_name = config.get("device_name") or f"PC-{socket.gethostname()}"
+
+        enroll_code = enroll_code or config.get("enroll_code", "OGK2026X")
+        device_id = config.get("device_id")
+        if not device_id:
+            device_id = str(uuid.uuid4())
 
         payload = {
             "enroll_code": enroll_code,
@@ -49,15 +57,19 @@ class PolicySyncManager:
             "device_name": device_name
         }
         try:
-            print(f"[*] Dang ket noi Server ({self.server_url}/auth/enroll) de ghep doi voi ma: {enroll_code}...")
+            print(f"[*] Dang ket noi Server ({self.server_url}/auth/enroll) de ghep doi cho '{device_name}' voi ma: {enroll_code}...")
             res = requests.post(f"{self.server_url}/auth/enroll", json=payload, timeout=5)
             if res.status_code == 200:
                 data = res.json()
                 config["device_id"] = data.get("device_id", device_id)
-                config["child_name"] = data.get("child_name", child_name)
+                config["child_name"] = data.get("child_name", child_name or "Con")
+                config["parent_username"] = data.get("parent_username", "")
+                config["device_name"] = device_name
+                config["enroll_code"] = enroll_code
+                config["server_url"] = self.server_url
                 config["policy_version"] = data.get("policy_version", 1)
                 self.save_config(config)
-                print(f"[+] Ghep doi thiet bi thanh cong! Device ID: {config['device_id']}")
+                print(f"[+] Ghep doi thiet bi '{device_name}' thanh cong! Device ID: {config['device_id']}")
                 return config
             else:
                 print(f"[-] Ghep doi that bai: {res.text}")
@@ -107,7 +119,7 @@ class PolicySyncManager:
         print(f"[!] [HMAC] TỪ CHỐI CHÍNH SÁCH V{version}: Chữ ký HMAC không khớp! (Có dấu hiệu bị chỉnh sửa)")
         return False
 
-    def check_and_sync(self):
+    def check_and_sync(self, used_minutes: int = 0, remaining_minutes: int = None, bonus_minutes: int = 0):
         """Gui heartbeat dinh ky & dong bo Policy neu co phien ban moi"""
         config = self.load_config()
         if not config or "device_id" not in config:
@@ -120,7 +132,10 @@ class PolicySyncManager:
 
         payload = {
             "device_id": device_id,
-            "current_policy_version": current_version
+            "current_policy_version": current_version,
+            "used_minutes": used_minutes,
+            "remaining_minutes": remaining_minutes,
+            "bonus_minutes": bonus_minutes
         }
 
         try:

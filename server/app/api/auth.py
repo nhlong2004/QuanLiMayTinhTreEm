@@ -50,7 +50,7 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     if data.role == "parent" and len(data.password) < 10:
         raise HTTPException(
             status_code=400,
-            detail="Mật khẩu phụ huynh phải có tối thiểu 10 ký tự theo tiêu chuẩn an toàn (F5)!"
+            detail="Mật khẩu phụ huynh cần có tối thiểu 10 ký tự để đảm bảo an toàn bảo mật."
         )
 
     existing_user = db.query(User).filter(User.username == username).first()
@@ -244,7 +244,13 @@ def enroll_device(data: EnrollRequest, db: Session = Depends(get_db)):
 
     device_id = data.device_id or str(uuid.uuid4())
     
-    latest_policy = db.query(Policy).order_by(Policy.version.desc()).first()
+    latest_policy = None
+    if parent_username:
+        latest_policy = db.query(Policy).filter(Policy.parent_username == parent_username).order_by(Policy.version.desc()).first()
+    if not latest_policy:
+        latest_policy = db.query(Policy).filter((Policy.parent_username == None) | (Policy.version == 1)).order_by(Policy.version.asc()).first()
+    if not latest_policy:
+        latest_policy = db.query(Policy).order_by(Policy.version.desc()).first()
     current_version = latest_policy.version if latest_policy else 1
 
     device = db.query(Device).filter(Device.id == device_id).first()
@@ -271,6 +277,20 @@ def enroll_device(data: EnrollRequest, db: Session = Depends(get_db)):
         db.add(device)
     
     db.commit()
+
+    # Tự động cập nhật agent/config.json trên máy dev để người dùng không cần sửa file bằng tay
+    try:
+        agent_cfg_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../agent/config.json"))
+        if os.path.exists(agent_cfg_path):
+            with open(agent_cfg_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            cfg["device_id"] = device_id
+            cfg["child_name"] = child_display_name
+            with open(agent_cfg_path, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, ensure_ascii=False, indent=4)
+    except Exception:
+        pass
+
     return {
         "status": "success",
         "message": f"Ghép đôi thiết bị '{data.device_name}' cho '{child_display_name}' thành công!",

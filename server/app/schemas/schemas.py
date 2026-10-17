@@ -23,6 +23,9 @@ class EnrollRequest(BaseModel):
 class HeartbeatRequest(BaseModel):
     device_id: str
     current_policy_version: int
+    used_minutes: Optional[int] = 0
+    remaining_minutes: Optional[int] = None
+    bonus_minutes: Optional[int] = 0
 
 class BlockWindow(BaseModel):
     start: str  # Ví dụ: "22:00" hoặc "11:00"

@@ -15,7 +15,7 @@ import json
 
 # 2. Import đúng đường dẫn từ package server
 from server.database.database import SessionLocal, engine
-from server.app.models.models import Base, User, Device, Policy, BlockedApp, BlockedDomain, Event, ChildRequest
+from server.app.models.models import Base, User, Device, Policy, BlockedApp, BlockedDomain, Event, ChildRequest, EnrollCode
 
 SECRET_KEY = "ogk_secure_secret_key_demo"
 
@@ -43,19 +43,20 @@ def init_db():
     default_matrix = [[1 for _ in range(48)] for _ in range(7)]
     schedule_str = json.dumps(default_matrix)
 
-    # 3. Tạo phiên bản chính sách v1 (F1, F4: Mặc định 1440 phút / 24h để lập trình viên thoải mái phát triển UI)
+    # 3. Tạo phiên bản chính sách v1 (Mặc định 90 phút ngày trong tuần, 120 phút cuối tuần)
     policy_data = {
         "version": 1,
-        "quota_weekday": 1440,
-        "quota_weekend": 1440,
+        "quota_weekday": 90,
+        "quota_weekend": 120,
         "schedule_matrix_json": schedule_str
     }
     sig = generate_policy_hmac(policy_data)
 
     policy_v1 = Policy(
         version=1,
-        quota_weekday=1440,
-        quota_weekend=1440,
+        parent_username=parent.username,
+        quota_weekday=90,
+        quota_weekend=120,
         schedule_matrix_json=schedule_str,
         hmac_signature=sig
     )
@@ -72,6 +73,16 @@ def init_db():
         status="online"
     )
     db.add(device)
+
+    # 4b. Tạo mã ghép đôi mẫu OGK2026X cho bé An
+    sample_enroll = EnrollCode(
+        code="OGK2026X",
+        child_id=child.id,
+        child_username=child.username,
+        parent_username=parent.username,
+        is_used=True
+    )
+    db.add(sample_enroll)
 
     # 5. Khởi tạo dữ liệu mẫu Ứng dụng bị chặn (F2)
     sample_apps = [

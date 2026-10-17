@@ -84,11 +84,11 @@ class TimeEnforcer:
 
     def get_effective_quota(self, policy_details=None):
         if not policy_details:
-            return 1440 + self.bonus_minutes  # Mặc định 1440 phút (24h) trước khi enroll để lập trình viên thoải mái phát triển
+            return 90 + self.bonus_minutes  # Mặc định 90 phút trước khi enroll
 
         now = datetime.datetime.now()
         is_weekend = now.weekday() >= 5  # 5 = Thứ 7, 6 = Chủ nhật
-        base_quota = policy_details.get("quota_weekend", 1440) if is_weekend else policy_details.get("quota_weekday", 1440)
+        base_quota = policy_details.get("quota_weekend", 120) if is_weekend else policy_details.get("quota_weekday", 90)
         return base_quota + self.bonus_minutes
 
     def get_remaining_minutes(self, policy_details=None) -> int:

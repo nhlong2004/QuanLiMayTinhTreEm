@@ -74,14 +74,19 @@ def get_child_requests(
     from server.app.models.models import Device, EnrollCode
     query = db.query(ChildRequest)
     if parent_username:
-        parent_devices = db.query(Device.id).filter(Device.parent_username == parent_username).subquery()
-        parent_children = db.query(EnrollCode.child_id).filter(EnrollCode.parent_username == parent_username).subquery()
+        parent_devices = [d[0] for d in db.query(Device.id).filter(Device.parent_username == parent_username).all()]
+        parent_children = [c[0] for c in db.query(EnrollCode.child_id).filter(EnrollCode.parent_username == parent_username).all() if c[0]]
+        parent_device_children = [d[0] for d in db.query(Device.child_id).filter(Device.parent_username == parent_username).filter(Device.child_id != None).all()]
+        all_children = list(set(parent_children + parent_device_children))
         query = query.filter(
             (ChildRequest.device_id.in_(parent_devices)) |
-            (ChildRequest.child_id.in_(parent_children))
+            (ChildRequest.child_id.in_(all_children))
         )
     elif child_id is not None:
         query = query.filter(ChildRequest.child_id == child_id)
+    else:
+        # Không có tham số lọc -> không trả về dữ liệu của người khác
+        return []
 
     requests = query.order_by(ChildRequest.id.desc()).all()
     return requests
